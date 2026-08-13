@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
+# Copyright (c) 2022-2026, The Isaac Lab Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -9,19 +9,22 @@ from isaaclab_rl.rsl_rl import RslRlMLPModelCfg, RslRlOnPolicyRunnerCfg, RslRlPp
 
 
 @configclass
-class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
-    num_steps_per_env = 16
-    max_iterations = 150
+class XgbRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+    num_steps_per_env = 24
+    max_iterations = 1500
     save_interval = 50
-    experiment_name = "cartpole_direct"
+    experiment_name = "xgb_rough"
     actor = RslRlMLPModelCfg(
-        hidden_dims=[32, 32],
+        hidden_dims=[512, 256, 128],
         activation="elu",
         obs_normalization=False,
-        distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(init_std=1.0),
+        distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(
+            init_std=0.5,     # 降低初始 std，避免动作爆炸
+            std_type="scalar", # 改用 scalar 类型，直接学习 std
+        ),
     )
     critic = RslRlMLPModelCfg(
-        hidden_dims=[32, 32],
+        hidden_dims=[512, 256, 128],
         activation="elu",
         obs_normalization=False,
     )
@@ -29,13 +32,24 @@ class PPORunnerCfg(RslRlOnPolicyRunnerCfg):
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.2,
-        entropy_coef=0.005,
-        num_learning_epochs=5,
         num_mini_batches=4,
-        learning_rate=1.0e-3,
+        learning_rate=1.0e-4,  # 降低学习率，防止价值网络发散
         schedule="adaptive",
         gamma=0.99,
         lam=0.95,
         desired_kl=0.01,
         max_grad_norm=1.0,
+        entropy_coef=0.02,     # 增加系数，提高探索稳定性
+        num_learning_epochs=3, # 减少每轮更新次数，防止过拟合
     )
+
+
+@configclass
+class XgbFlatPPORunnerCfg(XgbRoughPPORunnerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+
+        self.max_iterations = 300
+        self.experiment_name = "xgb_flat"
+        self.actor.hidden_dims = [128, 128, 128]
+        self.critic.hidden_dims = [128, 128, 128]
