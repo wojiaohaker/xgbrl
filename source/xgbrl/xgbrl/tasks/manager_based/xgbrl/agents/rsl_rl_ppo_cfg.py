@@ -49,7 +49,7 @@ class XgbFlatPPORunnerCfg(XgbRoughPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.max_iterations = 300
+        self.max_iterations = 10000
         self.experiment_name = "xgb_flat"
         self.actor.hidden_dims = [128, 128, 128]
         self.critic.hidden_dims = [128, 128, 128]
