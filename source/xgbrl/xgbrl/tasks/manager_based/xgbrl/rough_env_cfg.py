@@ -6,7 +6,6 @@
 from isaaclab.utils.configclass import configclass
 
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
-from isaaclab_tasks.utils import preset
 
 ##
 # Pre-defined configs
@@ -21,7 +20,7 @@ class XgbRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         super().__post_init__()
 
         self.scene.robot = XGB_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-        self.scene.robot.actuators["base_legs"].armature = preset(default=0.0, newton_mjwarp=0.02)
+        self.scene.robot.actuators["base_legs"].armature = 0.0
         self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/base_link"
         # scale down the terrains because the robot is small
         self.scene.terrain.terrain_generator.sub_terrains["boxes"].grid_height_range = (0.025, 0.1)
