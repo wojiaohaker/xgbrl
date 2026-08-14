@@ -31,36 +31,16 @@ class XgbRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # reduce action scale
         self.actions.joint_pos.scale = 0.25
 
-        # velocity command ranges (Matrix: cmpc_x_vel=3.0, cmpc_y_vel=1.0, cmpc_yaw_vel=3.0)
-        self.commands.base_velocity.ranges.lin_vel_x = (0.0, 3.0)
+        # velocity command ranges (官方默认 ±1.0，匹配 XGB 物理能力)
+        self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-1.0, 1.0)
-        self.commands.base_velocity.ranges.ang_vel_z = (-3.0, 3.0)
+        self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
 
-        # rewards
+        # rewards — 使用官方默认权重，不做额外修改
         # xgb foot is part of KNEE_LINK (no separate FOOT_LINK body)
-        # Disable feet_air_time for now since contact sensor only detects base_link
         self.rewards.feet_air_time = None
         self.rewards.undesired_contacts = None
-        self.rewards.dof_torques_l2.weight = -0.0002
-        self.rewards.track_lin_vel_xy_exp.weight = 1.5
-        self.rewards.track_ang_vel_z_exp.weight = 0.75
-        self.rewards.dof_acc_l2.weight = -2.5e-7
-        
-        # 新增：惩罚侧向移动和转向（强制直线行走）
-        from isaaclab.envs import mdp
-        from isaaclab.managers import RewardTermCfg as RewTerm
-        
-        # 惩罚 Y 方向线速度（侧向移动）- 提高权重
-        self.rewards.lin_vel_y_l2 = RewTerm(
-            func=lambda env: mdp.base_lin_vel(env)[..., 1] ** 2,
-            weight=-2.0,  # 从 -1.0 提高到 -2.0
-        )
-        
-        # 惩罚 Z 方向角速度（转向）- 提高权重
-        self.rewards.ang_vel_z_l2 = RewTerm(
-            func=lambda env: mdp.base_ang_vel(env)[..., 2] ** 2,
-            weight=-1.0,  # 从 -0.5 提高到 -1.0
-        )
+        self.rewards.flat_orientation_l2.weight = 0.0  # 官方默认禁用
 
         # terminations
         self.terminations.base_contact.params["sensor_cfg"].body_names = "base_link"

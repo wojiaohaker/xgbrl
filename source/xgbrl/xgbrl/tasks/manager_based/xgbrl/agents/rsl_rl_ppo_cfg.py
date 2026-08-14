@@ -18,10 +18,7 @@ class XgbRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         hidden_dims=[512, 256, 128],
         activation="elu",
         obs_normalization=False,
-        distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(
-            init_std=0.5,     # 降低初始 std，避免动作爆炸
-            std_type="scalar", # 改用 scalar 类型，直接学习 std
-        ),
+        distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(init_std=1.0),
     )
     critic = RslRlMLPModelCfg(
         hidden_dims=[512, 256, 128],
@@ -29,18 +26,18 @@ class XgbRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         obs_normalization=False,
     )
     algorithm = RslRlPpoAlgorithmCfg(
-        value_loss_coef=0.5,     # 降低价值损失系数
+        value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.2,
+        entropy_coef=0.01,
+        num_learning_epochs=5,
         num_mini_batches=4,
-        learning_rate=3.0e-4,    # 提高学习率（官方默认值）
+        learning_rate=1.0e-3,
         schedule="adaptive",
         gamma=0.99,
         lam=0.95,
         desired_kl=0.01,
         max_grad_norm=1.0,
-        entropy_coef=0.01,
-        num_learning_epochs=5,   # 增加更新次数
     )
 
 
@@ -49,7 +46,7 @@ class XgbFlatPPORunnerCfg(XgbRoughPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.max_iterations = 5000
+        self.max_iterations = 3000
         self.experiment_name = "xgb_flat"
         self.actor.hidden_dims = [128, 128, 128]
         self.critic.hidden_dims = [128, 128, 128]
