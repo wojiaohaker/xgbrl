@@ -1,30 +1,15 @@
 一、重新训练
 
-还是 300！配置文件改了但没生效。可能是 Python 缓存问题：
+xgbrl 的 gym 注册没有被加载。让我查一下 Isaac Lab 如何发现外部任务包：
 
 
-文件确实是 5000。让我查一下任务注册是否指向了正确的 agent 配置：
-
-
-配置注册正确（指向 `XgbFlatPPORunnerCfg`）。但 300 不在配置里。让我查一下是否有安装的包覆盖了源码：
-
-
-找到原因了！`xgbrl` 是以**包安装**的，训练加载的是安装时的旧版本，不是源码。让我确认：
-
-
-配置已经生效了！直接导入测试显示 `max_iterations = 5000`。
-
-你看到的 300 是**旧训练进程**的输出。需要：
-
-1. **停掉当前训练**（Ctrl+C）
-2. **清理缓存并重启**：
+找到了！xgbrl 有自己的训练脚本（第 43 行有 `import xgbrl.tasks`），要用它而不是 IsaacLab 的：
 
 ```bash
-find ~/Softwares/xgbrl/source -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null
-cd ~/Softwares/xgbrl && ~/Softwares/IsaacLab/isaaclab.sh train --rl_library rsl_rl --task=Isaac-Velocity-Flat-XGB-v0 --num_envs=4096
+cd ~/Softwares/xgbrl && ~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/train.py --task=Isaac-Velocity-Flat-XGB-v0 --num_envs=4096
 ```
 
-启动后注意看输出应该显示 `Learning iteration 1/5000`。
+IsaacLab 的 `train` 命令不会自动加载 xgbrl 包，所以 gym 注册表里没有 XGB 环境。xgbrl 自己的脚本会先 `import xgbrl.tasks` 触发注册。
 
 
 
