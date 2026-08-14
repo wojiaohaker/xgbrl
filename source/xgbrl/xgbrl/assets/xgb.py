@@ -22,8 +22,8 @@ XGB_ACTUATOR_CFG = DCMotorCfg(
     effort_limit=28.0,
     saturation_effort=28.0,
     velocity_limit=30.0,
-    stiffness=20.0,   # Matrix: FSM_RL_ABAD/HIP/KNEE_Kp = 20.0
-    damping=0.7,      # Matrix: FSM_RL_Kd = 0.7
+    stiffness=80.0,   # RL training: higher than Matrix deployment (20.0) to maintain pose
+    damping=2.0,      # RL training: higher than Matrix deployment (0.7) for stability
     friction=0.0,
 )
 """Configuration for xgb leg actuators using DC motor model.
