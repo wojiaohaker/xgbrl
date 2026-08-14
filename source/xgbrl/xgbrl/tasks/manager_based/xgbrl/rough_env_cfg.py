@@ -11,7 +11,7 @@ from isaaclab_tasks.utils import preset
 ##
 # Pre-defined configs
 ##
-from isaaclab_assets.robots.xgb import XGB_CFG  # isort: skip
+from xgbrl.assets.xgb import XGB_CFG  # isort: skip
 
 
 @configclass
