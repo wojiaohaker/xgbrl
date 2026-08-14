@@ -21,6 +21,35 @@ cd ~/Softwares/xgbrl && ~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/play.
 
 
 
+是的，**完全正常**！从截图看：
+
+1. ✅ 四条腿完全对称（FAR、FBL、RAR、RBL 姿态一致）
+2. ✅ 关节结构正确（ABAD → HIP → KNEE 层级正确）
+3. ✅ 模型没有左右不对称的问题
+
+**结论：MJCF 模型本身没问题，USD 转换也没问题。**
+
+之前训练时左前腿异常的原因是 **PD 增益太低**（stiffness=20, damping=0.7），不足以维持目标关节位置，导致 reset 后关节位置漂移不对称。
+
+需要在 `flat_env_cfg.py` 和 `rough_env_cfg.py` 里提高 PD 增益。根据你之前的经验（Kp=150, Kd=2.0），我来修改：
+
+
+模型完全正常！问题确认是 **PD 增益太低**。
+
+当前 `stiffness=20, damping=0.7` 是 Matrix 部署时的值，但在 Isaac Lab RL 训练中太低，无法维持站立姿态。
+
+修改 `xgb.py` 提高 PD 增益：
+
+
+已修改 PD 增益：`stiffness: 20→80, damping: 0.7→2.0`
+
+**需要重新训练**，因为旧模型是用低增益训练的，和新增益不兼容。
+
+训练命令：
+```bash
+cd ~/Softwares/xgbrl && ~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/train.py --task=Isaac-Velocity-Flat-XGB-v0 --num_envs=4096
+```
+
 
 
 一、训练命令
