@@ -13,6 +13,14 @@ IsaacLab 的 `train` 命令不会自动加载 xgbrl 包，所以 gym 注册表�
 
 
 
+```bash
+cd ~/Softwares/xgbrl && ~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/play.py --task=Isaac-Velocity-Flat-XGB-Play-v0 --num_envs=1 --load_run=2026-08-14_14-31-23 --checkpoint=/home/qiyuan/Softwares/xgbrl/logs/rsl_rl/xgb_flat/2026-08-14_14-31-23/model_4999.pt --visualizer kit
+```
+
+如果想看最新的（3000 次迭代），用上面的命令。训练完成后可以换成 `model_5000.pt`。
+
+
+
 
 
 一、训练命令
