@@ -259,3 +259,49 @@ env.close()  # 关闭仿真器
     ↓
 训练完成 → 关闭仿真器
 ```
+
+
+
+
+
+六、崩溃
+
+训练跑到 4967 次了，但最后崩溃了。问题变了：
+
+| 指标           | 值      | 问题                             |
+| -------------- | ------- | -------------------------------- |
+| value loss     | NaN     | 价值网络崩溃                     |
+| surrogate loss | NaN     | 策略梯度崩溃                     |
+| entropy        | -61.64  | 应该是正数，负值说明概率计算异常 |
+| action std     | 0.00    | std 完全坍缩                     |
+| **观测值**     | **NaN** | **环境返回了 NaN**               |
+
+**根本原因**：PhysX GPU 内存不足（`foundLostPairsCapacity` 错误），导致物理仿真产生 NaN，污染了观测值。
+
+## 解决方案
+
+**减少并行环境数**，降低 GPU 内存压力：
+
+```bash
+rm -rf ~/Softwares/xgbrl/logs/rsl_rl/xgb_flat/
+
+cd ~/Softwares/xgbrl && ~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/train.py --task=Isaac-Velocity-Flat-XGB-v0 --num_envs=2048
+```
+
+从 4096 减到 2048，应该能避免 PhysX 内存溢出。
+
+
+
+七、大佬修复
+
+```bash
+cd ~/Softwares/Mujoco330/demo_xgb && ~/Softwares/IsaacLab/env_isaaclab/bin/python run_onnx_policy_fix.py /home/qiyuan/Softwares/IsaacLab/logs/rsl_rl/xgb_flat/2026-08-12_09-55-03/exported/policy.onnx --mjcf /home/qiyuan/Softwares/Matrix/src/robot_mujoco/zsibot_robots/xgb/scene_terrain_flat.xml
+```
+
+
+
+八、我的问题
+
+```bash
+cd ~/Softwares/Mujoco330/demo_xgb && ~/Softwares/IsaacLab/env_isaaclab/bin/python run_onnx_policy.py /home/qiyuan/Softwares/IsaacLab/logs/rsl_rl/xgb_flat/2026-08-12_09-55-03/exported/policy.onnx --mjcf /home/qiyuan/Softwares/Matrix/src/robot_mujoco/zsibot_robots/xgb/scene_terrain_flat.xml
+```
