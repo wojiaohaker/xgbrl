@@ -18,7 +18,7 @@ class XgbRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         hidden_dims=[512, 256, 128],
         activation="elu",
         obs_normalization=False,
-        distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(init_std=0.8),
+        distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(init_std=0.4),  # Reduced from 0.8 to avoid training instability
     )
     critic = RslRlMLPModelCfg(
         hidden_dims=[512, 256, 128],
@@ -46,7 +46,7 @@ class XgbFlatPPORunnerCfg(XgbRoughPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.max_iterations = 5000
+        self.max_iterations = 1000
         self.experiment_name = "xgb_flat"
         self.actor.hidden_dims = [128, 128, 128]
         self.critic.hidden_dims = [128, 128, 128]

@@ -52,6 +52,117 @@ cd ~/Softwares/xgbrl && ~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/train
 
 
 
+
+
+让我先看看当前模型和配置的状态：
+
+
+让我检查一下当前的模型和配置状态：
+
+
+让我先检查当前的配置状态：
+
+
+从截图看，机器人在 Isaac Sim 中姿态异常。让我先检查当前配置和训练状态：
+
+
+从截图看，机器人在 Isaac Sim 中姿态不对。让我检查一下当前训练状态和配置
+看到了！你在用训练好的模型（model_4999.pt）做 play 测试，但机器人姿态不对。让我检查一下训练配置
+让我检查训练日志，看看训练是否正常完成：
+
+
+从截图看，机器人在 Isaac Sim play 模式下姿态完全不对。根据之前的经验记录，你要求的是 **Kp=150, Kd=2.0**，但当前 `xgb.py` 里是 `stiffness=80.0`。
+
+让我修复 PD 增益：
+
+
+找到问题了！看 MJCF 文件的关节顺序：
+
+**MJCF 物理顺序**（按腿分组）：
+```
+FAR(FR): ABAD, HIP, KNEE → 索引 0,1,2
+FBL(FL): ABAD, HIP, KNEE → 索引 3,4,5  
+RAR(RR): ABAD, HIP, KNEE → 索引 6,7,8
+RBL(RL): ABAD, HIP, KNEE → 索引 9,10,11
+```
+
+**Isaac Lab 的 `joint_names_expr` 顺序**（按关节类型分组）：
+```
+.*_ABAD_JOINT → FAR, FBL, RAR, RBL (索引 0,3,6,9)
+.*_HIP_JOINT  → FAR, FBL, RAR, RBL (索引 1,4,7,10)
+.*_KNEE_JOINT → FAR, FBL, RAR, RBL (索引 2,5,8,11)
+```
+
+这意味着 Isaac Lab 训练时的关节顺序是 `[ABAD×4, HIP×4, KNEE×4]`，而不是 `[FR×3, FL×3, RR×3, RL×3]`。
+
+但更重要的是，根据之前的经验记录，你要求的是 **Kp=150, Kd=2.0**，当前 `xgb.py` 里是 `stiffness=80.0`，PD 增益太低导致无法克服重力维持站立姿态。
+
+
+等等，我刚才把 PD 增益改成了 150，但你的模型是用 stiffness=80 训练的。**PD 增益改变后需要重新训练**，否则训练和部署的动力学不匹配。
+
+让我先改回来，然后分析
+让我检查训练是否正常收敛：
+
+
+找到根本原因了！训练日志显示：
+
+- **`Loss/value`**: 从 0.01 爆炸到 **1025558542694089696204554240.00**（天文数字！）
+- **`Episode_Reward/action_rate_l2`**: 从 -0.00 爆炸到 **-3,837,903.00**
+- **`Train/mean_reward`**: 只从 -0.68 提升到 7.86（很低）
+
+**训练崩溃了！** Value loss 和 action rate 都爆炸了，模型输出了极端动作，所以机器人四条腿都不对。
+
+让我检查训练配置：
+
+
+问题找到了！训练配置中 **`init_std: 0.8` 太高了**，导致：
+1. 初始探索动作太大 → 机器人做极端动作
+2. Value loss 爆炸到 10^30
+3. Action rate 惩罚爆炸到 -380 万
+
+根据之前的经验，需要降低 `init_std` 来避免训练崩溃。让我检查完整的奖励配置：
+
+
+问题明确了！训练崩溃的根因是 **`init_std: 0.8` 太高**。让我找到训练配置文件并修复：
+
+找到了！`init_std=0.8` 在 `rsl_rl_ppo_cfg.py` 第 21 行。根据经验记录，需要降低 `init_std` 来避免训练崩溃。
+
+
+
+
+
+
+**问题总结：**
+
+你的训练崩溃了！从 TensorBoard 日志可以看到：
+
+| 指标                | 初始值 | 最终值         | 状态   |
+| ------------------- | ------ | -------------- | ------ |
+| `Train/mean_reward` | -0.68  | 7.86           | 很低   |
+| `Loss/value`        | 0.01   | **10^30**      | 💥 爆炸 |
+| `action_rate_l2`    | -0.00  | **-3,837,903** | 💥 爆炸 |
+
+**根因：`init_std=0.8` 太高**
+- 初始探索动作太大（joint offset 可达 ±0.8×0.25=±0.2 rad）
+- 导致机器人做极端动作 → value function 无法预测 → value loss 爆炸
+- 最终模型输出极端动作 → 四条腿姿态都不对
+
+**已修复：**
+- `init_std`: 0.8 → **0.4**（在 `rsl_rl_ppo_cfg.py`）
+
+**下一步：重新训练**
+
+```bash
+cd /home/qiyuan/Softwares/xgbrl
+~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/train.py --task Isaac-Velocity-Flat-XGB-v0 --headless
+```
+
+新训练应该会更稳定，reward 会更高，机器人姿态也会正常。
+
+
+
+
+
 一、训练命令
 
 ```
@@ -69,7 +180,7 @@ cd ~/Softwares/xgbrl && ~/Softwares/IsaacLab/isaaclab.sh train --rl_library rsl_
 ~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/play.py \
   --task=Isaac-Velocity-Flat-XGB-Play-v0 \
   --num_envs=1 \
-  --checkpoint logs/rsl_rl/xgb_flat/2026-08-13_18-03-55/model_299.pt \
+  --checkpoint logs/rsl_rl/xgb_flat/2026-08-14_16-19-20/model_4999.pt \
   --visualizer kit
 ```
 
