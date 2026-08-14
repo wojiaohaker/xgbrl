@@ -29,18 +29,18 @@ class XgbRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         obs_normalization=False,
     )
     algorithm = RslRlPpoAlgorithmCfg(
-        value_loss_coef=1.0,
+        value_loss_coef=0.5,     # 降低价值损失系数
         use_clipped_value_loss=True,
         clip_param=0.2,
         num_mini_batches=4,
-        learning_rate=1.0e-4,  # 降低学习率，防止价值网络发散
+        learning_rate=3.0e-4,    # 提高学习率（官方默认值）
         schedule="adaptive",
         gamma=0.99,
         lam=0.95,
         desired_kl=0.01,
         max_grad_norm=1.0,
-        entropy_coef=0.02,     # 增加系数，提高探索稳定性
-        num_learning_epochs=3, # 减少每轮更新次数，防止过拟合
+        entropy_coef=0.01,
+        num_learning_epochs=5,   # 增加更新次数
     )
 
 
@@ -49,7 +49,7 @@ class XgbFlatPPORunnerCfg(XgbRoughPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.max_iterations = 10000
+        self.max_iterations = 5000
         self.experiment_name = "xgb_flat"
         self.actor.hidden_dims = [128, 128, 128]
         self.critic.hidden_dims = [128, 128, 128]
