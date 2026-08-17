@@ -5,7 +5,7 @@
 
 from isaaclab.utils.configclass import configclass
 
-from isaaclab_rl.rsl_rl import RslRlMLPModelCfg, RslRlOnPolicyRunnerCfg, RslRlPpoAlgorithmCfg
+from isaaclab_rl.rsl_rl import RslRlMLPModelCfg, RslRlRNNModelCfg, RslRlOnPolicyRunnerCfg, RslRlPpoAlgorithmCfg
 
 
 @configclass
@@ -14,11 +14,14 @@ class XgbRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     max_iterations = 1500
     save_interval = 50
     experiment_name = "xgb_rough"
-    actor = RslRlMLPModelCfg(
-        hidden_dims=[512, 256, 128],
+    actor = RslRlRNNModelCfg(
+        hidden_dims=[256, 128],
         activation="elu",
         obs_normalization=False,
-        distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(init_std=0.4),  # Reduced from 0.8 to avoid training instability
+        rnn_type="lstm",
+        rnn_hidden_dim=512,
+        rnn_num_layers=1,
+        distribution_cfg=RslRlMLPModelCfg.GaussianDistributionCfg(init_std=0.4),
     )
     critic = RslRlMLPModelCfg(
         hidden_dims=[512, 256, 128],
@@ -48,5 +51,5 @@ class XgbFlatPPORunnerCfg(XgbRoughPPORunnerCfg):
 
         self.max_iterations = 1000
         self.experiment_name = "xgb_flat"
-        self.actor.hidden_dims = [128, 128, 128]
-        self.critic.hidden_dims = [128, 128, 128]
+        self.actor.hidden_dims = [128, 128]
+        self.critic.hidden_dims = [128, 128]

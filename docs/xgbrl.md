@@ -170,6 +170,19 @@ cd /home/qiyuan/Softwares/xgbrl
 
 
 cd ~/Softwares/xgbrl && ~/Softwares/IsaacLab/isaaclab.sh train --rl_library rsl_rl --task=Isaac-Velocity-Flat-XGB-v0 --num_envs=4096
+
+
+IsaacLabTutorial
+# 无头训练（推荐）
+~/Softwares/IsaacLab/isaaclab.sh -p scripts/skrl/train.py --task Template-Isaac-Lab-Tutorial-Direct-v0 --headless
+
+# 带可视化训练
+~/Softwares/IsaacLab/isaaclab.sh -p scripts/skrl/train.py --task Template-Isaac-Lab-Tutorial-Direct-v0 --visualizer kit
+
+# 指定训练轮数
+~/Softwares/IsaacLab/isaaclab.sh -p scripts/skrl/train.py --task Template-Isaac-Lab-Tutorial-Direct-v0 --headless --max_iterations 1000
+
+这个项目用的是 **skrl** 库（不是 rsl_rl），任务名是 `Template-Isaac-Lab-Tutorial-Direct-v0`。
 ```
 
 
@@ -180,8 +193,32 @@ cd ~/Softwares/xgbrl && ~/Softwares/IsaacLab/isaaclab.sh train --rl_library rsl_
 ~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/play.py \
   --task=Isaac-Velocity-Flat-XGB-Play-v0 \
   --num_envs=1 \
+  --checkpoint logs/rsl_rl/xgb_flat/2026-08-17_15-14-11/model_999.pt \
+  --viz kit
+
+
+~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/play.py \
+  --task=Isaac-Velocity-Flat-XGB-Play-v0 \
+  --num_envs=1 \
   --checkpoint logs/rsl_rl/xgb_flat/2026-08-14_16-19-20/model_4999.pt \
   --visualizer kit
+  
+~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/play.py \
+  --task=Isaac-Velocity-Flat-XGB-Play-v0 \
+  --num_envs=1 \
+  --checkpoint logs/rsl_rl/xgb_flat/2026-08-14_16-19-20/model_4999.pt \
+  --viz kit
+  
+~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/play.py \
+  --task=Isaac-Velocity-Flat-XGB-Play-v0 \
+  --num_envs=1 \
+  --checkpoint logs/rsl_rl/xgb_flat/2026-08-14_17-55-21/model_999.pt \
+  --viz kit
+  
+
+  
+IsaacLabTutorial
+~/Softwares/IsaacLab/isaaclab.sh -p scripts/skrl/play.py --task Template-Isaac-Lab-Tutorial-Direct-v0 --num_envs 10 --viz kit
 ```
 
 
