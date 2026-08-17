@@ -193,7 +193,7 @@ IsaacLabTutorial
 ~/Softwares/IsaacLab/isaaclab.sh -p scripts/rsl_rl/play.py \
   --task=Isaac-Velocity-Flat-XGB-Play-v0 \
   --num_envs=1 \
-  --checkpoint logs/rsl_rl/xgb_flat/2026-08-17_15-14-11/model_999.pt \
+  --checkpoint logs/rsl_rl/xgb_flat/2026-08-17_15-45-34/model_999.pt \
   --viz kit
 
 
@@ -795,3 +795,40 @@ if nan_envs.any():
 - **内容基本一致** — 都是这 7 组信息，只是排列顺序和 base_vel 的来源不同
 
 这就是为什么 qiyuan_mc 的 `buildObservation()` 需要严格对齐训练时的顺序，同时用 odom 估计值替代训练时的 `base_lin_vel` 真值。
+
+
+
+
+
+让我验证新模型的观测顺序是否正确：
+
+
+观测顺序验证通过，完全匹配 Matrix 格式：
+
+```
+1. projected_gravity  (3)   ← 重力投影
+2. base_ang_vel       (3)   ← 角速度
+3. base_lin_vel       (3)   ← 线速度（部署时用 odom 估计替代）
+4. velocity_commands  (3)   ← 速度指令
+5. joint_pos          (12)  ← 关节相对位置
+6. joint_vel          (12)  ← 关节速度
+7. actions            (12)  ← 上一步动作
+8. height_scan        null  ← 已禁用
+─────────────────────────────
+总计                   48 维
+```
+
+**模型结构**：
+- LSTM ✅：`obs[48] + h_in[512] + c_in[512] → actions[12] + h_out[512] + c_out[512]`
+- 与 Matrix 的 walk 策略完全一致
+
+现在可以把模型复制到 qiyuan_mc 使用了：
+
+```bash
+cp /home/qiyuan/Softwares/xgbrl/logs/rsl_rl/xgb_flat/2026-08-17_15-45-34/exported/policy.onnx \
+   /home/qiyuan/Softwares/qiyuan_mc/models/policy.onnx
+cp /home/qiyuan/Softwares/xgbrl/logs/rsl_rl/xgb_flat/2026-08-17_15-45-34/exported/policy.onnx.data \
+   /home/qiyuan/Softwares/qiyuan_mc/models/policy.onnx.data
+```
+
+需要我帮你复制并测试运行吗？
