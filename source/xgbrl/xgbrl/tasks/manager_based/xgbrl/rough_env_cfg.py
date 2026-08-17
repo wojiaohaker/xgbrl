@@ -4,8 +4,13 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 from isaaclab.utils.configclass import configclass
+from isaaclab.managers import ObservationGroupCfg as ObsGroup
+from isaaclab.managers import ObservationTermCfg as ObsTerm
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.utils.noise import UniformNoiseCfg as Unoise
 
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
+import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
 
 ##
 # Pre-defined configs
@@ -18,6 +23,53 @@ class XgbRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
+
+        # Override observation order to match Matrix robot_mc format:
+        #   projected_gravity(3) → base_ang_vel(3) → base_lin_vel(3) →
+        #   velocity_commands(3) → joint_pos_rel(12) → joint_vel_rel(12) → last_action(12) = 48
+        @configclass
+        class MatrixPolicyCfg(ObsGroup):
+            projected_gravity = ObsTerm(
+                func=mdp.projected_gravity,
+                params={"asset_cfg": SceneEntityCfg("robot")},
+                noise=Unoise(n_min=-0.05, n_max=0.05),
+            )
+            base_ang_vel = ObsTerm(
+                func=mdp.base_ang_vel,
+                params={"asset_cfg": SceneEntityCfg("robot")},
+                noise=Unoise(n_min=-0.2, n_max=0.2),
+            )
+            base_lin_vel = ObsTerm(
+                func=mdp.base_lin_vel,
+                params={"asset_cfg": SceneEntityCfg("robot")},
+                noise=Unoise(n_min=-0.1, n_max=0.1),
+            )
+            velocity_commands = ObsTerm(
+                func=mdp.generated_commands,
+                params={"command_name": "base_velocity"},
+            )
+            joint_pos = ObsTerm(
+                func=mdp.joint_pos_rel,
+                params={"asset_cfg": SceneEntityCfg("robot")},
+                noise=Unoise(n_min=-0.01, n_max=0.01),
+            )
+            joint_vel = ObsTerm(
+                func=mdp.joint_vel_rel,
+                params={"asset_cfg": SceneEntityCfg("robot")},
+                noise=Unoise(n_min=-1.5, n_max=1.5),
+            )
+            actions = ObsTerm(func=mdp.last_action)
+            height_scan = None  # disabled, set to None by flat_env_cfg
+
+            def __post_init__(self):
+                self.enable_corruption = True
+                self.concatenate_terms = True
+
+        @configclass
+        class MatrixObsCfg:
+            policy: MatrixPolicyCfg = MatrixPolicyCfg()
+
+        self.observations = MatrixObsCfg()
 
         self.scene.robot = XGB_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.scene.robot.actuators["base_legs"].armature = 0.0

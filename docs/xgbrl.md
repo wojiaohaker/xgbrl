@@ -699,3 +699,99 @@ if nan_envs.any():
 1. **继续观察第二次训练**（2026-08-14_14-02-39），看能否稳定超过 5.0
 2. 如果 reward 再次崩溃，考虑进一步降低 `learning_rate` 到 `5e-5`
 3. 如果 `base_contact` 摔倒率仍然 >50%，考虑降低 `flat_orientation_l2` 权重到 `-1.5`
+
+
+
+
+
+## 什么是"观测"（Observation）
+
+在强化学习运控中，**观测 = 策略网络的输入向量**。每个控制周期（2ms），控制器把所有感知信息打包成一个固定长度的浮点数组，喂给 ONNX 模型，模型输出 12 个关节动作。
+
+```
+观测 obs[48]  →  [ONNX 策略网络]  →  动作 action[12]
+```
+
+可以理解为：**观测就是机器人"看到"的全部世界**。策略网络是"大脑"，观测就是"眼睛+内耳+记忆"传给大脑的所有信号。
+
+观测通常包含：
+| 类别       | 含义                  | 类比                  |
+| ---------- | --------------------- | --------------------- |
+| 本体姿态   | 重力方向、角速度      | 内耳（平衡感）        |
+| 基座速度   | 当前移动速度          | 本体感觉              |
+| 速度指令   | 期望走多快            | "想走快一点"的意图    |
+| 关节状态   | 各关节角度和速度      | 本体感觉（肌肉/肌腱） |
+| 上一步动作 | 上一周期输出的 action | 短期记忆              |
+
+---
+
+## Matrix 的观测是什么样的
+
+从之前的分析，Matrix 的 walk 策略（`policy_mix_walk`）观测是 **48 维**，结构如下：
+
+| 索引     | 维度   | 内容                  | 数据来源                               |
+| -------- | ------ | --------------------- | -------------------------------------- |
+| [0:2]    | 3      | **projected_gravity** | IMU → 四元数 → 重力在本体坐标系的投影  |
+| [3:5]    | 3      | **angular_velocity**  | IMU 陀螺仪直接读取                     |
+| [6:8]    | 3      | **base_vel** (odom)   | **odom 模型推理输出**（不是直接测量）  |
+| [9:11]   | 3      | **vel_cmd**           | 手柄/上位机下发的速度指令 (vx, vy, wz) |
+| [12:23]  | 12     | **joint_pos_rel**     | 12 关节位置 − 默认站立位置（相对偏差） |
+| [24:35]  | 12     | **joint_vel**         | 12 关节速度                            |
+| [36:47]  | 12     | **last_action**       | 上一个控制周期的策略输出               |
+| **合计** | **48** |                       |                                        |
+
+### 关键推理流程（从 Matrix 日志还原）
+
+```
+每 2ms 一个周期：
+
+  ① 接收 RobotState（UDP）
+     → q[12], qd[12], quat[4], gyro[3], acc[3]
+
+  ② Odom 推理（LSTM）
+     input[29] → odom模型 → output[3] = base_vel
+
+  ③ 拼观测 obs[48]
+     [proj_grav(3), ang_vel(3), base_vel(3), vel_cmd(3),
+      joint_pos_rel(12), joint_vel(12), last_action(12)]
+
+  ④ Policy 推理（LSTM）
+     obs[48] + h_in[512] + c_in[512] → policy模型 → actions[12]
+
+  ⑤ PD 控制
+     τ = Kp * (stand_pos + 0.25 * action - q) - Kd * qd
+
+  ⑥ 发送 RobotCmd（UDP）
+```
+
+### Matrix 不同策略的观测维度
+
+| 策略          | obs 维度 | 多出来的部分            |
+| ------------- | -------- | ----------------------- |
+| walk          | 48       | 标准观测                |
+| jump/backflip | 49       | +1 相位变量             |
+| balance_stand | 51       | +3 位置目标 (x, y, yaw) |
+| tracking      | 52       | +4 目标位置/朝向        |
+| IK            | 93       | +45 足端目标轨迹        |
+| measured      | 169      | +121 长历史帧/力传感器  |
+
+---
+
+## 你的 Isaac Lab 训练 vs Matrix 的观测对比
+
+| 索引    | 维度 | Isaac Lab 训练                | Matrix 部署           |
+| ------- | ---- | ----------------------------- | --------------------- |
+| [0:2]   | 3    | **base_lin_vel** (仿真器真值) | **projected_gravity** |
+| [3:5]   | 3    | **base_ang_vel** (仿真器真值) | **angular_velocity**  |
+| [6:8]   | 3    | **projected_gravity**         | **base_vel (odom)**   |
+| [9:11]  | 3    | **velocity_commands**         | **velocity_commands** |
+| [12:23] | 12   | **joint_pos_rel**             | **joint_pos_rel**     |
+| [24:35] | 12   | **joint_vel_rel**             | **joint_vel**         |
+| [36:47] | 12   | **last_action**               | **last_action**       |
+
+**关键差异**：
+- **顺序不同** — Isaac Lab 是 `lin_vel → ang_vel → gravity → cmd`，Matrix 是 `gravity → ang_vel → base_vel(odom) → cmd`
+- **base_lin_vel vs base_vel(odom)** — 训练时用仿真器真值，部署时 Matrix 用 odom 模型估计值替代
+- **内容基本一致** — 都是这 7 组信息，只是排列顺序和 base_vel 的来源不同
+
+这就是为什么 qiyuan_mc 的 `buildObservation()` 需要严格对齐训练时的顺序，同时用 odom 估计值替代训练时的 `base_lin_vel` 真值。
