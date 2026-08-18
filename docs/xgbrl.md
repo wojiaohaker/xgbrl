@@ -832,3 +832,335 @@ cp /home/qiyuan/Softwares/xgbrl/logs/rsl_rl/xgb_flat/2026-08-17_15-45-34/exporte
 ```
 
 需要我帮你复制并测试运行吗？
+
+
+
+
+
+
+
+好的，让我从实际运行的 Matrix 重新分析站立和趴下的实现。
+
+
+好的，我从源码重新分析 Matrix mc_ctrl 的站立和趴下实现。
+
+
+源码不在 robot_mc 目录下，让我找找实际源码位置：
+
+
+没有源码文件，让我查看 build 目录和整个 Matrix 项目结构：
+
+
+源码可能是通过 git 管理的。让我查找实际的源码文件：
+
+
+源码不在 git 中。让我找实际的 mc_ctrl 二进制和库文件，以及可能的源码位置：
+
+
+源码只有编译后的二进制文件。让我从运行日志、配置文件和二进制符号来分析：
+
+
+非常好，日志信息很丰富。让我继续读取配置文件和分析二进制符号：
+
+
+现在分析二进制中的 FSM 符号和 motion 配置：
+
+
+让我查看 qiyuan_mc 中的 FSM 头文件来了解状态枚举定义：
+
+
+现在我已经收集了足够的信息。让我综合分析。
+
+
+## Matrix mc_ctrl 站立（U键）与趴下（Space键）分析
+
+### 一、整体架构
+
+mc_ctrl 采用**两层状态机**架构：
+
+```
+┌─────────────────── 主 FSM ───────────────────┐
+│  PASSIVE → JOINT_PD → STANDUP → RL_MIX      │
+│                          ↕                    │
+│                   RL_BALANCE_STAND            │
+│                                              │
+│  STANDUP 内部包含一个 Motion 子状态机:        │
+│  ┌─ Motion_State_RecoveryStand (核心)        │
+│  │   ├── standUp()   ← 站立                 │
+│  │   ├── lieDown()   ← 趴下                 │
+│  │   ├── foldLegs()  ← 收腿                 │
+│  │   ├── rollOver()  ← 翻身                 │
+│  │   └── sideLying() ← 侧卧                 │
+│  ├─ Motion_State_MotionMix (特殊动作)        │
+│  └─ Motion_State_Greet (打招呼)              │
+└──────────────────────────────────────────────┘
+```
+
+### 二、按键输入链路
+
+```
+键盘 U/Space
+    ↓
+MuJoCo GLFW 窗口 / 物理手柄
+    ↓
+Joystick 设备 (/dev/input/js*)
+    ↓
+mc_ctrl: GamepadReader (500Hz 周期任务)
+    ↓
+GamepadCommand → DesiredStateCommand::handleGamePadCommand()
+    ↓
+修改 param_control_mode / param_motion_mode
+    ↓
+ControlFSM::checkTransition() 检测状态跳转条件
+    ↓
+切换到目标 FSM 状态
+```
+
+日志确认：
+```
+[joystic] find 1 joystic
+[PeriodicTask] Start GamepadReader (0 s, 2000000 ns)
+```
+
+### 三、站立过程（U 键）
+
+**不是 ONNX 模型控制，是纯 PD 控制。**
+
+#### 状态流转
+```
+PASSIVE → JOINT_PD → STANDUP(standUp) → RL_MIX
+```
+
+#### STANDUP 状态内部实现
+
+`FSM_State_StandUp::run()` 调用 `Motion_State_RecoveryStand::standUp()`：
+
+**阶段 1：增益渐进（ramp up）**
+- 由 `standup_ramp_iter` 控制迭代次数
+- PD 增益从 0 渐进到目标值：
+  - ABAD/HIP/KNEE Kp = **20.0**（`FSM_RL_ABAD_Kp`）
+  - Kd = **0.7**（`FSM_RL_Kd`）
+
+**阶段 2：关节插值**
+- 目标关节位置从当前姿态插值到站立姿态：
+  ```yaml
+  abad_stand_pos:  [0, 0, 0, 0]       # rad
+  hip_stand_pos:   [0.8, 0.8, 0.8, 0.8]  # rad
+  knee_stand_pos:  [-1.5, -1.5, -1.5, -1.5]  # rad
+  ```
+- 使用 `setJPosInterPts()` 设置插值起点和终点
+
+**阶段 3：稳定等待（settle）**
+- 由 `standup_settle_iter` 控制
+- 保持站立姿态，等待机器人稳定
+
+**阶段 4：跳转条件**
+- 检查 `body_height` 是否达到阈值
+- 日志：`body height is %f, Stand up`
+- 条件满足 → 跳转到 `RL_MIX`，ONNX 策略接管
+
+#### 控制公式
+```
+τ = Kp × (q_des - q) + Kd × (qd_des - qd)
+
+其中:
+  q_des  = 站立目标位置（插值中）
+  qd_des = 0（目标速度为零）
+  Kp, Kd = 渐进增益
+```
+
+### 四、趴下过程（Space 键）
+
+**同样不是 ONNX 模型控制，是纯 PD 控制。**
+
+#### 状态流转
+```
+RL_MIX → STANDUP(lieDown/foldLegs) → PASSIVE
+```
+
+#### 跳转条件
+从日志中的 transition 条件可知：
+```
+transition condition is not met, can't transition from rlmix to liedown
+```
+说明从 RL_MIX 到趴下需要满足特定条件（body_height 足够低）。
+
+#### STANDUP 状态内部实现
+
+`Motion_State_RecoveryStand` 根据意图执行 `lieDown()` 或 `foldLegs()`：
+
+**关节目标：站立 → 趴下姿态**
+```yaml
+abad_liedown_pos:  [0, 0, 0, 0]
+hip_liedown_pos:   [1.4, 1.4, 1.4, 1.4]    # 比站立(0.8)更大
+knee_liedown_pos:  [-2.4, -2.4, -2.4, -2.4] # 比站立(-1.5)更弯
+```
+
+**过程**：
+1. 关节位置从站立插值到趴下姿态
+2. `fold_ramp_iter` 控制 PD 增益渐进
+3. `fold_settle_iter` 等待稳定
+4. 日志：`body height is %f, Folding legs`
+5. 条件检查：`body height is still too low %f, or UpsideDown Folding legs`
+6. 高度足够 → 跳转到 `PASSIVE`（电机阻尼）
+
+### 五、关键配置参数
+
+| 参数                  | 值         | 说明                 |
+| --------------------- | ---------- | -------------------- |
+| `enable_standup`      | 1          | 允许站立             |
+| `enable_foldleg`      | 1          | 允许收腿趴下         |
+| `FSM_RL_ABAD_Kp`      | 20.0       | RL 模式 ABAD Kp      |
+| `FSM_RL_HIP_Kp`       | 20.0       | RL 模式 HIP Kp       |
+| `FSM_RL_KNEE_Kp`      | 20.0       | RL 模式 KNEE Kp      |
+| `FSM_RL_Kd`           | 0.7        | RL 模式 Kd           |
+| `FSM_passive_Kd`      | 3.0        | 被动模式阻尼         |
+| `FSM_jointPD_Kp`      | 80         | JOINT_PD 模式 Kp     |
+| `FSM_jointPD_Kd`      | 1.0        | JOINT_PD 模式 Kd     |
+| `standup_ramp_iter`   | (内部变量) | 站立增益渐进迭代次数 |
+| `standup_settle_iter` | (内部变量) | 站立稳定等待迭代次数 |
+| `fold_ramp_iter`      | (内部变量) | 趴下增益渐进迭代次数 |
+| `fold_settle_iter`    | (内部变量) | 趴下稳定等待迭代次数 |
+
+### 六、完整 FSM 状态初始化顺序
+
+从日志可以看到启动时的初始化：
+```
+Initialized FSM state: PASSIVE
+Initialized FSM state: JOINT_PD
+Initialized FSM state: STANDUP
+Initialized Motion state          ← Motion_State_RecoveryStand
+Initialized FSM state: JOINT_FREE
+Initialized FSM state: SAFE_PROTECT
+Initialized FSM state: RL_MLP
+Initialized FSM state: RL_MIX     ← 主 RL 策略
+Initialized FSM state: RL_BALANCE_STAND
+Initialized FSM state: RL_WalkPos
+Initialized FSM state: RL_IK
+Initialized FSM state: JOINT_LOCK
+Initialized FSM state: POS_CONTROL
+```
+
+### 七、总结
+
+| 特性         | 站立（U）                | 趴下（Space）            | RL 行走（WASD） |
+| ------------ | ------------------------ | ------------------------ | --------------- |
+| **控制方式** | PD 控制                  | PD 控制                  | ONNX LSTM 策略  |
+| **Kp**       | 20.0（渐进）             | 20.0（渐进）             | 20.0            |
+| **Kd**       | 0.7（渐进）              | 0.7（渐进）              | 0.7             |
+| **目标位置** | `*_stand_pos`            | `*_liedown_pos`          | 策略网络输出    |
+| **FSM 状态** | STANDUP                  | STANDUP                  | RL_MIX          |
+| **子状态**   | RecoveryStand::standUp() | RecoveryStand::lieDown() | -               |
+| **跳转条件** | body_height 达标         | body_height 足够低       | -               |
+
+**核心结论**：站立和趴下都是 **纯 PD 关节位置插值控制**，不经过 ONNX 模型。ONNX 策略只在 `RL_MIX` 状态（机器人已经站稳后）才介入。`Motion_State_RecoveryStand` 是处理所有起坐/趴下/收腿/翻身的核心子状态机。
+
+
+
+
+
+我先确认两个细节：训练时的速度指令范围（决定摇杆缩放），以及当前是否有虚拟手柄设备：
+
+
+虚拟手柄设备已在 `/dev/input/js0`。再查训练时的速度指令范围：
+
+
+再确认 ONNXInference 接口、main.cpp 和 CMakeLists：
+
+
+**第三步：MainController 集成手柄输入与 FSM 跳转逻辑**：
+
+
+现在修改 main_controller.cpp：
+
+
+现在在文件末尾添加两个新方法的实现：
+
+
+**第四步：CMakeLists 更新 + 编译验证**：
+
+
+编译通过。现在验证 GamepadReader 能否正确发现设备——先确认虚拟 F710 对应的 event 设备号：
+
+
+编译通过。写一个临时测试程序验证 GamepadReader 运行时行为（设备发现 + 事件读取）：
+
+
+现在同时运行注入脚本和冒烟测试（需 sudo，uinput 需要 root）：
+
+
+发现问题：存在残留的旧设备 event17，而新注入的事件走的是新设备。修正为**同时监听所有 F710 设备**（多路 select），避免选错残留设备：
+
+
+重构为多设备监听。先改头文件：
+
+
+重写 .cpp 为多设备版本：
+
+
+重新编译并再次运行闭环测试：
+
+
+还有个隐患：组合键的完整按下/释放序列可能在**同一次 drain 批处理**中完成，批处理后只看到最终状态。需要改为**每个按键事件后**都检测一次：
+
+
+LIEDOWN 成功但 STANDUP 和 W 仍丢失。我找到了根因：**每 2 秒的重新扫描会无条件重置按键/摇杆状态**，导致事件在下一次轮询前被清零。修复为仅当打开了**新设备**时才重置状态：
+
+
+重新编译并验证：
+
+
+重新编译测试并运行（修复了打印覆盖问题）：
+
+
+当前正在调试最后一个问题。给你完整状态：
+
+**进展**：运控代码全部写完并编译通过，闭环测试中：
+- ✅ W/Q 摇杆速度（ly=-1、rx=-1）正确收到
+- ✅ Space（RB+LB）趴下请求正确触发
+- ❌ **U（LB+Y）站立请求始终没触发** —— 已排除是打印覆盖的显示问题，是真没检测到
+
+代码逻辑上站立/趴下用的是同一套闩锁检测，但站立总是丢。我现在加调试输出定位 LB+Y 事件到底有没有到达、状态机哪一步出错：
+
+
+调试输出暴露了关键矛盾：`LB released: saw_y=0`，但 Y↓ 事件明明先到达了。加更详细的状态打印：
+
+
+输出非常诡异：`KEY code=0x134 val=1` 刚写入，下一行 `combo` 里 `y=0`。这不合常理，先完整读一遍当前代码检查是否有错：
+
+
+重新编译主库和测试，再次验证：
+
+
+全部验证通过！STANDUP、LIEDOWN、W/Q 摇杆全部正确检测。清理临时测试文件并记录这个坑：
+
+
+全部完成了。总结一下这次的工作和遇到的问题：
+
+## 最终实现
+
+按你的要求，**没有做键盘模块**，运控完全对接 `keyboard_control.py` 的虚拟 F710 手柄：
+
+| 文件                                                         | 改动                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [gamepad_reader.h/.cpp](file:///home/qiyuan/Softwares/qiyuan_mc/src/input/gamepad_reader.cpp)（新增） | 通过 evdev 读取 `/dev/input/eventX` 的虚拟 F710；多设备并行监听 + 2s 重扫描；LB+Y/RB+LB 闩锁式组合键检测；摇杆归一化（含死区） |
+| [control_fsm.h/.cpp](file:///home/qiyuan/Softwares/qiyuan_mc/src/fsm/control_fsm.cpp) | 站立/趴下纯 PD 插值（捕获起始姿态修复了原来插值不收敛的 bug）、增益 1s 渐进、settle 稳定段、新增 FOLDLEGS 趴下状态 |
+| [main_controller.h/.cpp](file:///home/qiyuan/Softwares/qiyuan_mc/src/main_controller.cpp) | 移除自动站立；U 键 PASSIVE→STANDUP→RL_MIX，Space 键 RL_MIX→FOLDLEGS→PASSIVE；进 RL 前 resetLSTM + 清零 action；仅 RL_MIX 跑 ONNX；摇杆满量程映射 ±1.0（与训练范围一致） |
+| CMakeLists.txt                                               | 加入新源文件                                                 |
+
+## 调试中解决的 3 个问题
+
+1. **残留设备干扰**：上次会话遗留的死 F710 设备还在系统里 → 改为监听所有 F710 设备
+2. **重扫描清空状态**：2s 重扫描会无条件重置按键状态，把还没被消费的请求清掉 → 仅当打开新设备时才重置
+3. **最隐蔽的一个**：站立组合键始终检测不到 —— 这台机器的内核头文件里 `BTN_NORTH=0x133`，而 keyboard_control.py（python-evdev）发的是 `0x134`，两者正好相反。已改为硬编码 `GP_Y=0x134`，这个坑已记入记忆
+
+## 闭环验证结果（模拟注入测试）
+
+```
+[EVENT] >>> STANDUP request   ✅ U 站立
+[STICK] ly=-1                 ✅ W 前进
+[STICK] rx=-1                 ✅ Q 左转
+[EVENT] >>> LIEDOWN request   ✅ Space 趴下
+```
+
+编译通过，可以直接联调了：先起 MuJoCo 仿真 + `keyboard_control.py`（sudo），再跑 `qiyuan_mc/build/mc_ctrl`，按 U 站立后用 WASD/QE 控制。
