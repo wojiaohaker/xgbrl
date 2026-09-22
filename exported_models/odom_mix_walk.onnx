@@ -1,195 +1,223 @@
 
-pytorch2.10.0+cu128:ù€
-ï
+pytorch2.10.0+cu128:–è
+⁄
 input
-val_0	unsqueezenode_unsqueeze"	UnsqueezeJC
-	namespace6: __main__.OdomNetV2/unsqueeze: aten.unsqueeze.defaultJR
-pkg.torch.onnx.class_hierarchy0['__main__.OdomNetV2', 'aten.unsqueeze.default']Jä
-pkg.torch.onnx.fx_nodep%unsqueeze : [num_users=1] = call_function[target=torch.ops.aten.unsqueeze.default](args = (%x, 0), kwargs = {})J/
-pkg.torch.onnx.name_scopes['', 'unsqueeze']Já
-pkg.torch.onnx.stack_traceiFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
-‡
+val_0	unsqueezenode_unsqueeze"	UnsqueezeJN
+	namespaceA: __main__.OdomNetRank2Exporter/unsqueeze: aten.unsqueeze.defaultJ]
+pkg.torch.onnx.class_hierarchy;['__main__.OdomNetRank2Exporter', 'aten.unsqueeze.default']Jç
+pkg.torch.onnx.fx_nodes%unsqueeze : [num_users=1] = call_function[target=torch.ops.aten.unsqueeze.default](args = (%x_in, 0), kwargs = {})J/
+pkg.torch.onnx.name_scopes['', 'unsqueeze']J≥
+pkg.torch.onnx.stack_traceîFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+Ñ	
 h0
 val_0
 val_2
-val_0val_3node_Slice_3"SliceJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_3node_Slice_3"SliceJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-‡
+Ñ	
 c0
 val_0
 val_2
-val_0val_4node_Slice_4"SliceJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_4node_Slice_4"SliceJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Ô
-lstm.weight_ih_l0
+ô	
+model.lstm.weight_ih_l0
 val_0
 val_1
-val_0val_5node_Slice_5"SliceJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_5node_Slice_5"SliceJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Ô
-lstm.weight_ih_l0
+ô	
+model.lstm.weight_ih_l0
 val_1
 val_7
-val_0val_8node_Slice_8"SliceJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_8node_Slice_8"SliceJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Ú
-lstm.weight_ih_l0
+ú	
+model.lstm.weight_ih_l0
 val_7
 val_11
-val_0val_12node_Slice_12"SliceJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_12node_Slice_12"SliceJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Û
-lstm.weight_ih_l0
+ù	
+model.lstm.weight_ih_l0
 val_11
 val_15
-val_0val_16node_Slice_16"SliceJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_16node_Slice_16"SliceJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Ò
-lstm.weight_hh_l0
+õ	
+model.lstm.weight_hh_l0
 val_0
 val_1
-val_0val_17node_Slice_17"SliceJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_17node_Slice_17"SliceJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Ò
-lstm.weight_hh_l0
+õ	
+model.lstm.weight_hh_l0
 val_1
 val_7
-val_0val_19node_Slice_19"SliceJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_19node_Slice_19"SliceJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Ú
-lstm.weight_hh_l0
+ú	
+model.lstm.weight_hh_l0
 val_7
 val_11
-val_0val_22node_Slice_22"SliceJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_22node_Slice_22"SliceJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Û
-lstm.weight_hh_l0
+ù	
+model.lstm.weight_hh_l0
 val_11
 val_15
-val_0val_25node_Slice_25"SliceJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_25node_Slice_25"SliceJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-ˆ
+ö	
 val_5
 val_16
 val_8
 val_12val_26node_Concat_26"Concat*
-axis †JW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+axis †JÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-¯
+ú	
 val_17
 val_25
 val_19
 val_22val_27node_Concat_27"Concat*
-axis †JW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+axis †JÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-‡
+Ñ	
 val_26
-val_0val_28node_Unsqueeze_28"	UnsqueezeJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_28node_Unsqueeze_28"	UnsqueezeJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-‡
+Ñ	
 val_27
-val_0val_29node_Unsqueeze_29"	UnsqueezeJW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+val_0val_29node_Unsqueeze_29"	UnsqueezeJÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-‘
+¯	
 	unsqueeze
 val_28
 val_29
@@ -200,164 +228,180 @@
 hidden_sizeÄ†*
 	direction"forward†*
 input_forget †*
-layout †JW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+layout †JÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Ï
+ê	
 val_52val_53node_Transpose_52"	Transpose*
-perm@ @@@†JW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+perm@ @@@†JÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Ì
+ë	
 val_53
 val_65getitemnode_lstm__0"Reshape*
-	allowzero †JW
-	namespaceJ: __main__.OdomNetV2/lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJh
-pkg.torch.onnx.class_hierarchyF['__main__.OdomNetV2', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']Jç
-pkg.torch.onnx.fx_nodeÚ%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_lstm_weight_ih_l0, %p_lstm_weight_hh_l0, %p_lstm_bias_ih_l0, %p_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})J2
-pkg.torch.onnx.name_scopes['', 'lstm', 'lstm']J°
-pkg.torch.onnx.stack_traceÇFile "/tmp/reexport_odom.py", line 44, in forward
-    x, (h, c) = self.lstm(x.unsqueeze(0), (h_in, c_in))
+	allowzero †JÄ
+	namespaces: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.lstm: torch.nn.modules.rnn.LSTM/lstm: aten.lstm.inputJá
+pkg.torch.onnx.class_hierarchye['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.rnn.LSTM', 'aten.lstm.input']J•
+pkg.torch.onnx.fx_nodeä%lstm : [num_users=3] = call_function[target=torch.ops.aten.lstm.input](args = (%unsqueeze, [%h_in, %c_in], [%p_model_lstm_weight_ih_l0, %p_model_lstm_weight_hh_l0, %p_model_lstm_bias_ih_l0, %p_model_lstm_bias_hh_l0], True, 1, 0.0, False, False, False), kwargs = {})JA
+pkg.torch.onnx.name_scopes#['', 'model', 'model.lstm', 'lstm']J‘
+pkg.torch.onnx.stack_traceµFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 143, in forward
+    x, (h, c) = self.lstm(x, (h_in, c_in))
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/rnn.py", line 1141, in forward
     result = _VF.lstm(
-Ó
+˚
 getitem
-val_0squeezenode_squeeze"SqueezeJ;
-	namespace.: __main__.OdomNetV2/squeeze: aten.squeeze.dimJL
-pkg.torch.onnx.class_hierarchy*['__main__.OdomNetV2', 'aten.squeeze.dim']Jà
-pkg.torch.onnx.fx_noden%squeeze : [num_users=1] = call_function[target=torch.ops.aten.squeeze.dim](args = (%getitem, 0), kwargs = {})J-
-pkg.torch.onnx.name_scopes['', 'squeeze']Jw
-pkg.torch.onnx.stack_traceYFile "/tmp/reexport_odom.py", line 45, in forward
+val_0squeezenode_squeeze"SqueezeJ^
+	namespaceQ: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/squeeze: aten.squeeze.dimJk
+pkg.torch.onnx.class_hierarchyI['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'aten.squeeze.dim']Jà
+pkg.torch.onnx.fx_noden%squeeze : [num_users=1] = call_function[target=torch.ops.aten.squeeze.dim](args = (%getitem, 0), kwargs = {})J6
+pkg.torch.onnx.name_scopes['', 'model', 'squeeze']J∏
+pkg.torch.onnx.stack_traceôFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 144, in forward
     return self.mlp(x.squeeze(0)), h, c
-Ë
+§
 squeeze
-mlp.0.weight
-
-mlp.0.biaslinearnode_linear"Gemm*
+model.mlp.0.weight
+model.mlp.0.biaslinearnode_linear"Gemm*
 beta  Ä?†*
 transB†*
 alpha  Ä?†*
-transA †Jè
-	namespaceÅ: __main__.OdomNetV2/mlp: torch.nn.modules.container.Sequential/mlp.0: torch.nn.modules.linear.Linear/linear: aten.linear.defaultJö
-pkg.torch.onnx.class_hierarchyx['__main__.OdomNetV2', 'torch.nn.modules.container.Sequential', 'torch.nn.modules.linear.Linear', 'aten.linear.default']J®
-pkg.torch.onnx.fx_nodeç%linear : [num_users=1] = call_function[target=torch.ops.aten.linear.default](args = (%squeeze, %p_mlp_0_weight, %p_mlp_0_bias), kwargs = {})J<
-pkg.torch.onnx.name_scopes['', 'mlp', 'mlp.0', 'linear']J–
-pkg.torch.onnx.stack_trace±File "/tmp/reexport_odom.py", line 45, in forward
+transA †Jæ
+	namespace∞: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.mlp: torch.nn.modules.container.Sequential/model.mlp.0: torch.nn.modules.linear.Linear/linear: aten.linear.defaultJ∫
+pkg.torch.onnx.class_hierarchyó['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.container.Sequential', 'torch.nn.modules.linear.Linear', 'aten.linear.default']J¥
+pkg.torch.onnx.fx_nodeô%linear : [num_users=1] = call_function[target=torch.ops.aten.linear.default](args = (%squeeze, %p_model_mlp_0_weight, %p_model_mlp_0_bias), kwargs = {})JQ
+pkg.torch.onnx.name_scopes3['', 'model', 'model.mlp', 'model.mlp.0', 'linear']Jê
+pkg.torch.onnx.stack_traceÒFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 144, in forward
     return self.mlp(x.squeeze(0)), h, c
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/container.py", line 253, in forward
     input = module(input)
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 134, in forward
     return F.linear(input, self.weight, self.bias)
-Û
+ò
+
 linearval_70node_Elu_69"Elu*
-alpha  Ä?†Jâ
-	namespace|: __main__.OdomNetV2/mlp: torch.nn.modules.container.Sequential/mlp.1: torch.nn.modules.activation.ELU/elu: aten.elu.defaultJò
-pkg.torch.onnx.class_hierarchyv['__main__.OdomNetV2', 'torch.nn.modules.container.Sequential', 'torch.nn.modules.activation.ELU', 'aten.elu.default']JÖ
-pkg.torch.onnx.fx_nodek%elu : [num_users=1] = call_function[target=torch.ops.aten.elu.default](args = (%linear, 1.0), kwargs = {})J9
-pkg.torch.onnx.name_scopes['', 'mlp', 'mlp.1', 'elu']J”
-pkg.torch.onnx.stack_trace¥File "/tmp/reexport_odom.py", line 45, in forward
+alpha  Ä?†Jπ
+	namespace´: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.mlp: torch.nn.modules.container.Sequential/model.mlp.1: torch.nn.modules.activation.ELU/elu: aten.elu.defaultJ∏
+pkg.torch.onnx.class_hierarchyï['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.container.Sequential', 'torch.nn.modules.activation.ELU', 'aten.elu.default']JÖ
+pkg.torch.onnx.fx_nodek%elu : [num_users=1] = call_function[target=torch.ops.aten.elu.default](args = (%linear, 1.0), kwargs = {})JN
+pkg.torch.onnx.name_scopes0['', 'model', 'model.mlp', 'model.mlp.1', 'elu']Jì
+pkg.torch.onnx.stack_traceÙFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 144, in forward
     return self.mlp(x.squeeze(0)), h, c
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/container.py", line 253, in forward
     input = module(input)
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/activation.py", line 616, in forward
     return F.elu(input, self.alpha, self.inplace)
-Ì
+©
 val_70
-mlp.2.weight
-
-mlp.2.biaslinear_1node_linear_1"Gemm*
+model.mlp.2.weight
+model.mlp.2.biaslinear_1node_linear_1"Gemm*
 beta  Ä?†*
 transB†*
 alpha  Ä?†*
-transA †Jë
-	namespaceÉ: __main__.OdomNetV2/mlp: torch.nn.modules.container.Sequential/mlp.2: torch.nn.modules.linear.Linear/linear_1: aten.linear.defaultJö
-pkg.torch.onnx.class_hierarchyx['__main__.OdomNetV2', 'torch.nn.modules.container.Sequential', 'torch.nn.modules.linear.Linear', 'aten.linear.default']J¶
-pkg.torch.onnx.fx_nodeã%linear_1 : [num_users=1] = call_function[target=torch.ops.aten.linear.default](args = (%elu, %p_mlp_2_weight, %p_mlp_2_bias), kwargs = {})J>
-pkg.torch.onnx.name_scopes ['', 'mlp', 'mlp.2', 'linear_1']J–
-pkg.torch.onnx.stack_trace±File "/tmp/reexport_odom.py", line 45, in forward
+transA †J¿
+	namespace≤: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.mlp: torch.nn.modules.container.Sequential/model.mlp.2: torch.nn.modules.linear.Linear/linear_1: aten.linear.defaultJ∫
+pkg.torch.onnx.class_hierarchyó['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.container.Sequential', 'torch.nn.modules.linear.Linear', 'aten.linear.default']J≤
+pkg.torch.onnx.fx_nodeó%linear_1 : [num_users=1] = call_function[target=torch.ops.aten.linear.default](args = (%elu, %p_model_mlp_2_weight, %p_model_mlp_2_bias), kwargs = {})JS
+pkg.torch.onnx.name_scopes5['', 'model', 'model.mlp', 'model.mlp.2', 'linear_1']Jê
+pkg.torch.onnx.stack_traceÒFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 144, in forward
     return self.mlp(x.squeeze(0)), h, c
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/container.py", line 253, in forward
     input = module(input)
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 134, in forward
     return F.linear(input, self.weight, self.bias)
-˝
+¢
+
 linear_1val_74node_Elu_73"Elu*
-alpha  Ä?†Jã
-	namespace~: __main__.OdomNetV2/mlp: torch.nn.modules.container.Sequential/mlp.3: torch.nn.modules.activation.ELU/elu_1: aten.elu.defaultJò
-pkg.torch.onnx.class_hierarchyv['__main__.OdomNetV2', 'torch.nn.modules.container.Sequential', 'torch.nn.modules.activation.ELU', 'aten.elu.default']Jâ
-pkg.torch.onnx.fx_nodeo%elu_1 : [num_users=1] = call_function[target=torch.ops.aten.elu.default](args = (%linear_1, 1.0), kwargs = {})J;
-pkg.torch.onnx.name_scopes['', 'mlp', 'mlp.3', 'elu_1']J”
-pkg.torch.onnx.stack_trace¥File "/tmp/reexport_odom.py", line 45, in forward
+alpha  Ä?†Jª
+	namespace≠: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.mlp: torch.nn.modules.container.Sequential/model.mlp.3: torch.nn.modules.activation.ELU/elu_1: aten.elu.defaultJ∏
+pkg.torch.onnx.class_hierarchyï['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.container.Sequential', 'torch.nn.modules.activation.ELU', 'aten.elu.default']Jâ
+pkg.torch.onnx.fx_nodeo%elu_1 : [num_users=1] = call_function[target=torch.ops.aten.elu.default](args = (%linear_1, 1.0), kwargs = {})JP
+pkg.torch.onnx.name_scopes2['', 'model', 'model.mlp', 'model.mlp.3', 'elu_1']Jì
+pkg.torch.onnx.stack_traceÙFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 144, in forward
     return self.mlp(x.squeeze(0)), h, c
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/container.py", line 253, in forward
     input = module(input)
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/activation.py", line 616, in forward
     return F.elu(input, self.alpha, self.inplace)
-Ì
+©
 val_74
-mlp.4.weight
-
-mlp.4.biasoutputnode_linear_2"Gemm*
+model.mlp.4.weight
+model.mlp.4.biasoutputnode_linear_2"Gemm*
 beta  Ä?†*
 transB†*
 alpha  Ä?†*
-transA †Jë
-	namespaceÉ: __main__.OdomNetV2/mlp: torch.nn.modules.container.Sequential/mlp.4: torch.nn.modules.linear.Linear/linear_2: aten.linear.defaultJö
-pkg.torch.onnx.class_hierarchyx['__main__.OdomNetV2', 'torch.nn.modules.container.Sequential', 'torch.nn.modules.linear.Linear', 'aten.linear.default']J®
-pkg.torch.onnx.fx_nodeç%linear_2 : [num_users=1] = call_function[target=torch.ops.aten.linear.default](args = (%elu_1, %p_mlp_4_weight, %p_mlp_4_bias), kwargs = {})J>
-pkg.torch.onnx.name_scopes ['', 'mlp', 'mlp.4', 'linear_2']J–
-pkg.torch.onnx.stack_trace±File "/tmp/reexport_odom.py", line 45, in forward
+transA †J¿
+	namespace≤: __main__.OdomNetRank2Exporter/model: __main__.OdomNet/model.mlp: torch.nn.modules.container.Sequential/model.mlp.4: torch.nn.modules.linear.Linear/linear_2: aten.linear.defaultJ∫
+pkg.torch.onnx.class_hierarchyó['__main__.OdomNetRank2Exporter', '__main__.OdomNet', 'torch.nn.modules.container.Sequential', 'torch.nn.modules.linear.Linear', 'aten.linear.default']J¥
+pkg.torch.onnx.fx_nodeô%linear_2 : [num_users=1] = call_function[target=torch.ops.aten.linear.default](args = (%elu_1, %p_model_mlp_4_weight, %p_model_mlp_4_bias), kwargs = {})JS
+pkg.torch.onnx.name_scopes5['', 'model', 'model.mlp', 'model.mlp.4', 'linear_2']Jê
+pkg.torch.onnx.stack_traceÒFile "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 156, in forward
+    out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+  File "/home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py", line 144, in forward
     return self.mlp(x.squeeze(0)), h, c
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/container.py", line 253, in forward
     input = module(input)
   File "/home/qiyuan/Softwares/IsaacLab/env_isaaclab/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 134, in forward
     return F.linear(input, self.weight, self.bias)
-main_graph*`ÄBlstm.weight_ih_l0j#
-locationodom_mix_walk.onnx.dataj
-offset0j
-length237568p*gÄÄBlstm.weight_hh_l0j#
+main_graph*kÄBmodel.lstm.weight_ih_l0j#
 locationodom_mix_walk.onnx.dataj
-offset237568j
-length4194304p*bÄÄBmlp.0.weightj#
-locationodom_mix_walk.onnx.dataj
-offset4431872j
-length524288p*[ÄB
-mlp.0.biasj#
-locationodom_mix_walk.onnx.dataj
-offset4956160j
-length1024p*bÄÄBmlp.2.weightj#
-locationodom_mix_walk.onnx.dataj
-offset4957184j
-length131072p*ñÄB
-mlp.2.biasJÄÓlÖ;ÿÂw=|NIºÎª0∫G\=‘õ<j›1º;…hΩÄ·˜;Åqº_æº5◊CΩ4ºƒœ*ºÖΩo~%<f≥„:9Ω¥EΩ6ËÖ=ò˛ΩºÃÖ¿<IË8Ωÿﬂ≈ª‹S=
-ΩøÒ#=,9Z=UQ8Ωó(= [tΩI<Ω»ƒû<AË–ºÒ¿∏ºı¯Ω˘Gù;Hf=∫ [π÷˙=„BìªΩ≥T<¡˘<äâ⁄º”£âªk"HΩΩ_»< U =7YI:X¨π„–)Ωµä3=jm<@ÍgºBbΩ≈q ΩùP=7Æ!=âorº;XÙª¸ÙÓ<>Ö‚ºÏ°=?;Î<<≥=%lñºj®<?Vç<Üî∑<œ◊’<˜;Ω:ééΩ?‹Ü<ÌÏo=ª;/l∂∫B'ΩB0Ê< =Ï,[=.n=wuΩRY∫ºÊÜ<=‰¶Ì;õgµ<A°/<¥>"=ÚD<⁄*;=X±éº¬–◊9-‡ºﬁØmº=rd=>œúºgÑ%=Kä.=*ÌZ∫&~Ω"€ñº⁄à⁄ª.’ù<ΩóΩ<F0ºùö5=ry∏º1∞9ºäÈÖ<èå8=èæ =cn<=u¢JΩ¢Rbº4*º;ÍF<⁄^´ºG‚=-ñ?=g∞™º%n{=ƒ„”;˜ìj=¬ÀR<ÏÎM;≤EŒª5Øº5ÛÉ<p *_ÄBmlp.4.weightj#
-locationodom_mix_walk.onnx.dataj
-offset5088256j
-length1536p*B
-mlp.4.biasJ≤ƒh=ˆ„èº(kÄ=*Bval_7J       *Bval_11J       *Bval_15J       *ZÄ Bval_51j#
-locationodom_mix_walk.onnx.dataj
-offset5089792j
-length16384p*&Bval_65J                     *Bval_0J        *Bval_1J       *Bval_2J       ZΩ
+offset150528j
+length237568p*mÄÄBmodel.lstm.weight_hh_l0j#
+locationodom_mix_walk.onnx.dataj
+offset917504j
+length4194304p*gÄÄBmodel.mlp.0.weightj#
+locationodom_mix_walk.onnx.dataj
+offset388096j
+length524288p*]ÄBmodel.mlp.0.biasj#
+locationodom_mix_walk.onnx.dataj
+offset512j
+length1024p*fÄÄBmodel.mlp.2.weightj#
+locationodom_mix_walk.onnx.dataj
+offset19456j
+length131072p*ZÄBmodel.mlp.2.biasj#
+locationodom_mix_walk.onnx.dataj
+offset0j
+length512p*bÄBmodel.mlp.4.weightj#
+locationodom_mix_walk.onnx.dataj
+offset1536j
+length1536p*$Bmodel.mlp.4.biasJ√ùº<∑KìºRº*Bval_7J       *Bval_11J       *Bval_15J       *WÄ Bval_51j#
+locationodom_mix_walk.onnx.dataj
+offset3072j
+length16384p*&Bval_65J                     *Bval_0J        *Bval_1J       *Bval_2J       Z¿
 input
 
 
 "=
 /pkg.torch.export.graph_signature.InputSpec.kind
 USER_INPUT"=
-5pkg.torch.export.graph_signature.InputSpec.persistentNone"&
-!pkg.torch.onnx.original_node_namexZ¬
+5pkg.torch.export.graph_signature.InputSpec.persistentNone")
+!pkg.torch.onnx.original_node_namex_inZ¬
 h0
 
 
@@ -395,67 +439,64 @@ USER_INPUT"=
 
 Ä"?
 0pkg.torch.export.graph_signature.OutputSpec.kindUSER_OUTPUT".
-!pkg.torch.onnx.original_node_name	getitem_2j€
-lstm.weight_ih_l0
+!pkg.torch.onnx.original_node_name	getitem_2jÁ
+model.lstm.weight_ih_l0
 	
 Ä
 "<
 /pkg.torch.export.graph_signature.InputSpec.kind	PARAMETER"=
-5pkg.torch.export.graph_signature.InputSpec.persistentNone"8
-!pkg.torch.onnx.original_node_namep_lstm_weight_ih_l0j‹
-lstm.weight_hh_l0
+5pkg.torch.export.graph_signature.InputSpec.persistentNone">
+!pkg.torch.onnx.original_node_namep_model_lstm_weight_ih_l0jË
+model.lstm.weight_hh_l0
 
 
 Ä
 Ä"<
 /pkg.torch.export.graph_signature.InputSpec.kind	PARAMETER"=
-5pkg.torch.export.graph_signature.InputSpec.persistentNone"8
-!pkg.torch.onnx.original_node_namep_lstm_weight_hh_l0j“
-mlp.0.weight
+5pkg.torch.export.graph_signature.InputSpec.persistentNone">
+!pkg.torch.onnx.original_node_namep_model_lstm_weight_hh_l0jﬁ
+model.mlp.0.weight
 
 
 Ä
 Ä"<
 /pkg.torch.export.graph_signature.InputSpec.kind	PARAMETER"=
-5pkg.torch.export.graph_signature.InputSpec.persistentNone"3
-!pkg.torch.onnx.original_node_namep_mlp_0_weightj…
-
-mlp.0.bias
+5pkg.torch.export.graph_signature.InputSpec.persistentNone"9
+!pkg.torch.onnx.original_node_namep_model_mlp_0_weightj’
+model.mlp.0.bias
 	
 Ä"<
 /pkg.torch.export.graph_signature.InputSpec.kind	PARAMETER"=
-5pkg.torch.export.graph_signature.InputSpec.persistentNone"1
-!pkg.torch.onnx.original_node_namep_mlp_0_biasj“
-mlp.2.weight
+5pkg.torch.export.graph_signature.InputSpec.persistentNone"7
+!pkg.torch.onnx.original_node_namep_model_mlp_0_biasjﬁ
+model.mlp.2.weight
 
 
 Ä
 Ä"<
 /pkg.torch.export.graph_signature.InputSpec.kind	PARAMETER"=
-5pkg.torch.export.graph_signature.InputSpec.persistentNone"3
-!pkg.torch.onnx.original_node_namep_mlp_2_weightj…
-
-mlp.2.bias
+5pkg.torch.export.graph_signature.InputSpec.persistentNone"9
+!pkg.torch.onnx.original_node_namep_model_mlp_2_weightj’
+model.mlp.2.bias
 	
 Ä"<
 /pkg.torch.export.graph_signature.InputSpec.kind	PARAMETER"=
-5pkg.torch.export.graph_signature.InputSpec.persistentNone"1
-!pkg.torch.onnx.original_node_namep_mlp_2_biasj—
-mlp.4.weight
+5pkg.torch.export.graph_signature.InputSpec.persistentNone"7
+!pkg.torch.onnx.original_node_namep_model_mlp_2_biasj›
+model.mlp.4.weight
 	
 
 Ä"<
 /pkg.torch.export.graph_signature.InputSpec.kind	PARAMETER"=
-5pkg.torch.export.graph_signature.InputSpec.persistentNone"3
-!pkg.torch.onnx.original_node_namep_mlp_4_weightj»
-
-mlp.4.bias
+5pkg.torch.export.graph_signature.InputSpec.persistentNone"9
+!pkg.torch.onnx.original_node_namep_model_mlp_4_weightj‘
+model.mlp.4.bias
 
 
 "<
 /pkg.torch.export.graph_signature.InputSpec.kind	PARAMETER"=
-5pkg.torch.export.graph_signature.InputSpec.persistentNone"1
-!pkg.torch.onnx.original_node_namep_mlp_4_biasjU
+5pkg.torch.export.graph_signature.InputSpec.persistentNone"7
+!pkg.torch.onnx.original_node_namep_model_mlp_4_biasjU
 val_7
 
 
@@ -470,12 +511,12 @@ $pkg.onnxscript.optimizer.folded_from['h0', 'val_1', 'val_10']jW
 
 
 "A
-$pkg.onnxscript.optimizer.folded_from['h0', 'val_1', 'val_14']jÚ
+$pkg.onnxscript.optimizer.folded_from['h0', 'val_1', 'val_14']j˛
 val_51
 	
 
-Ä "÷
-$pkg.onnxscript.optimizer.folded_from≠['h0', 'lstm.bias_hh_l0', 'lstm.bias_ih_l0', 'val_0', 'val_1', 'val_10', 'val_14', 'val_30', 'val_31', 'val_32', 'val_33', 'val_34', 'val_35', 'val_36', 'val_37', 'val_38', 'val_39', 'val_40', 'val_41', 'val_42', 'val_43', 'val_44', 'val_45', 'val_46', 'val_47', 'val_48', 'val_49', 'val_50', 'val_6']j 
+Ä "‚
+$pkg.onnxscript.optimizer.folded_fromπ['h0', 'model.lstm.bias_hh_l0', 'model.lstm.bias_ih_l0', 'val_0', 'val_1', 'val_10', 'val_14', 'val_30', 'val_31', 'val_32', 'val_33', 'val_34', 'val_35', 'val_36', 'val_37', 'val_38', 'val_39', 'val_40', 'val_41', 'val_42', 'val_43', 'val_44', 'val_45', 'val_46', 'val_47', 'val_48', 'val_49', 'val_50', 'val_6']j 
 val_65
 
 
@@ -600,20 +641,20 @@ $pkg.onnxscript.optimizer.folded_from['h0']j
 val_74
 	
 
-ÄÇ≤
-0pkg.torch.export.ExportedProgram.graph_signature˝
+ÄÇ≠
+0pkg.torch.export.ExportedProgram.graph_signature¯
 # inputs
-p_lstm_weight_ih_l0: PARAMETER target='lstm.weight_ih_l0'
-p_lstm_weight_hh_l0: PARAMETER target='lstm.weight_hh_l0'
-p_lstm_bias_ih_l0: PARAMETER target='lstm.bias_ih_l0'
-p_lstm_bias_hh_l0: PARAMETER target='lstm.bias_hh_l0'
-p_mlp_0_weight: PARAMETER target='mlp.0.weight'
-p_mlp_0_bias: PARAMETER target='mlp.0.bias'
-p_mlp_2_weight: PARAMETER target='mlp.2.weight'
-p_mlp_2_bias: PARAMETER target='mlp.2.bias'
-p_mlp_4_weight: PARAMETER target='mlp.4.weight'
-p_mlp_4_bias: PARAMETER target='mlp.4.bias'
-x: USER_INPUT
+p_model_lstm_weight_ih_l0: PARAMETER target='model.lstm.weight_ih_l0'
+p_model_lstm_weight_hh_l0: PARAMETER target='model.lstm.weight_hh_l0'
+p_model_lstm_bias_ih_l0: PARAMETER target='model.lstm.bias_ih_l0'
+p_model_lstm_bias_hh_l0: PARAMETER target='model.lstm.bias_hh_l0'
+p_model_mlp_0_weight: PARAMETER target='model.mlp.0.weight'
+p_model_mlp_0_bias: PARAMETER target='model.mlp.0.bias'
+p_model_mlp_2_weight: PARAMETER target='model.mlp.2.weight'
+p_model_mlp_2_bias: PARAMETER target='model.mlp.2.bias'
+p_model_mlp_4_weight: PARAMETER target='model.mlp.4.weight'
+p_model_mlp_4_bias: PARAMETER target='model.mlp.4.bias'
+x_in: USER_INPUT
 h_in: USER_INPUT
 c_in: USER_INPUT
 

@@ -36,6 +36,13 @@ parser.add_argument("--num_steps", type=int, default=5000)
 parser.add_argument("--seq_len", type=int, default=64, help="BPTT sequence length")
 parser.add_argument("--epochs", type=int, default=50)
 parser.add_argument("--lr", type=float, default=1e-3)
+parser.add_argument(
+    "--input_rank",
+    type=int,
+    default=2,
+    choices=[2, 3],
+    help="Rank of the exported ONNX input: 2 for (1, 29) (qiyuan_mc deployment), 3 for (1, 1, 29).",
+)
 parser.add_argument("--output", required=True, help="Output .onnx path")
 args_cli, remaining_args = parser.parse_known_args()
 
@@ -135,6 +142,19 @@ class OdomNet(nn.Module):
         """x: (1, batch, 29), h_in/c_in: (1, batch, 512) -> output: (batch, 3)"""
         x, (h, c) = self.lstm(x, (h_in, c_in))
         return self.mlp(x.squeeze(0)), h, c
+
+
+class OdomNetRank2Exporter(nn.Module):
+    """Wrap OdomNet so the ONNX input is rank-2 (1, 29), matching qiyuan_mc."""
+
+    def __init__(self, model: OdomNet):
+        super().__init__()
+        self.model = model
+
+    def forward(self, x_in, h_in, c_in):
+        """x_in: (1, 29), h_in/c_in: (1, 1, 512) -> output: (1, 3), hn, cn."""
+        out, h, c = self.model(x_in.unsqueeze(0), h_in, c_in)
+        return out, h, c
 
 
 # ---------------------------------------------------------------------------
@@ -251,16 +271,30 @@ def train_odom(inputs, targets, num_envs, seq_len, epochs, lr):
     return model
 
 
-def export_onnx(model, output_path):
-    """Export odom network as ONNX with qiyuan_mc-compatible node names."""
+def export_onnx(model, output_path, input_rank=2):
+    """Export odom network as ONNX with qiyuan_mc-compatible node names.
+
+    Args:
+        model: Trained OdomNet.
+        output_path: Output .onnx path.
+        input_rank: 2 exports input as (1, 29) for qiyuan_mc; 3 exports (1, 1, 29).
+    """
     model.cpu().eval()
-    dummy_input = torch.zeros(1, 1, 29)
     dummy_h = torch.zeros(1, 1, 512)
     dummy_c = torch.zeros(1, 1, 512)
 
+    if input_rank == 2:
+        export_model = OdomNetRank2Exporter(model)
+        dummy_input = torch.zeros(1, 29)
+        input_shape = "(1,29)"
+    else:
+        export_model = model
+        dummy_input = torch.zeros(1, 1, 29)
+        input_shape = "(1,1,29)"
+
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
     torch.onnx.export(
-        model,
+        export_model,
         (dummy_input, dummy_h, dummy_c),
         output_path,
         export_params=True,
@@ -270,7 +304,7 @@ def export_onnx(model, output_path):
         dynamic_axes={},
     )
     print(f"Exported odom ONNX: {output_path}")
-    print(f"  input: (1,1,29)  h0: (1,1,512)  c0: (1,1,512)")
+    print(f"  input: {input_shape}  h0: (1,1,512)  c0: (1,1,512)")
     print(f"  output: (1,3)  hn: (1,1,512)  cn: (1,1,512)")
 
 
@@ -304,7 +338,7 @@ def main():
     model = train_odom(inputs, targets, args_cli.num_envs, args_cli.seq_len, args_cli.epochs, args_cli.lr)
 
     # Export ONNX
-    export_onnx(model, args_cli.output)
+    export_onnx(model, args_cli.output, input_rank=args_cli.input_rank)
 
     sim_app.close()
 
