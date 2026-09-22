@@ -1,4 +1,4 @@
-一、训练命令
+一、训练模型
 
 ```
 可视化调试
@@ -57,5 +57,18 @@ cd /home/qiyuan/Softwares/xgbrl && /home/qiyuan/Softwares/IsaacLab/isaaclab.sh -
   --checkpoint logs/rsl_rl/xgb_flat/2026-09-22_13-59-16/model_1999.pt \
   --num_envs 50 --num_steps 5000 --epochs 50 \
   --output exported_models/odom_mix_walk.onnx
+```
+
+
+
+五、部署模型
+
+```
+# 1. 拷贝新模型（policy + odom，各含 .data） 
+cp /home/qiyuan/Softwares/xgbrl/exported_models/policy_mix_walk.onnx \
+   /home/qiyuan/Softwares/xgbrl/exported_models/policy_mix_walk.onnx.data \
+   /home/qiyuan/Softwares/xgbrl/exported_models/odom_mix_walk.onnx \
+   /home/qiyuan/Softwares/xgbrl/exported_models/odom_mix_walk.onnx.data \
+   /home/qiyuan/Softwares/qiyuan_mc/models_xgbrl/ && echo "copy done"
 ```
 
