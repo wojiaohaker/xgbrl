@@ -6,37 +6,119 @@
 """Train odom estimation network (supervised) for qiyuan_mc deployment.
 
 The odom network estimates body-frame linear velocity from proprioception:
-    Input  (29-dim): (roll, pitch, jpos_delta[12], jvel×0.05[12], gyro×0.25[3])
+    Input  (29-dim): (roll, pitch, jpos_delta[12], jvel*0.05[12], gyro*0.25[3])
     Output (3-dim):  base_lin_vel_b (body-frame linear velocity)
 
 Data is collected by running a trained policy in IsaacLab, then the LSTM
 network is trained with MSE loss. The exported ONNX matches qiyuan_mc's
-expected node names: input/h0/c0 → output/hn/cn.
+expected node names: input/h0/c0 -> output/hn/cn.
 
 Usage:
-    # Step 1: Collect data + train (requires trained policy checkpoint)
-    ./isaaclab.sh -p -m xgbrl.train_odom \
-        --checkpoint /path/to/model_XXXX.pt \
+    ./isaaclab.sh -p /home/qiyuan/Softwares/xgbrl/source/xgbrl/xgbrl/train_odom.py \
         --task Isaac-Velocity-Flat-XGB-Play-v0 \
-        --num_envs 50 \
-        --num_steps 5000 \
-        --output /path/to/odom.onnx
-
-    # Step 2 (after training): Export ONNX separately
-    ./isaaclab.sh -p -m xgbrl.train_odom \
-        --export_only \
-        --odom_pth /path/to/odom.pth \
-        --output /path/to/odom.onnx
+        --checkpoint /path/to/model_XXXX.pt \
+        --num_envs 50 --num_steps 5000 \
+        --output /path/to/odom_mix_walk.onnx
 """
 
 import argparse
 import os
+
 import torch
 import torch.nn as nn
 
+# CLI
+parser = argparse.ArgumentParser(description="Train odom estimation network for qiyuan_mc")
+parser.add_argument("--task", default="Isaac-Velocity-Flat-XGB-Play-v0")
+parser.add_argument("--checkpoint", required=True, help="Path to trained policy .pt checkpoint")
+parser.add_argument("--num_envs", type=int, default=50)
+parser.add_argument("--num_steps", type=int, default=5000)
+parser.add_argument("--seq_len", type=int, default=64, help="BPTT sequence length")
+parser.add_argument("--epochs", type=int, default=50)
+parser.add_argument("--lr", type=float, default=1e-3)
+parser.add_argument("--output", required=True, help="Output .onnx path")
+args_cli, remaining_args = parser.parse_known_args()
+
+# AppLauncher (must be before IsaacLab imports)
+from isaaclab.app import AppLauncher
+
+app_launcher = AppLauncher(headless=True, args_remaining=remaining_args)
+sim_app = app_launcher.app
+
+# IsaacLab imports
+import gymnasium as gym
+import xgbrl.tasks  # noqa: F401 - registers XGB envs
+
+
+# ---------------------------------------------------------------------------
+# Policy model (matches RSL-RL RNNModel architecture)
+# ---------------------------------------------------------------------------
+
+class PolicyLSTM(nn.Module):
+    """LSTM + MLP actor, reconstructed from RSL-RL checkpoint."""
+
+    def __init__(self, input_dim, hidden_dim, mlp_dims, output_dim):
+        super().__init__()
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers=1)
+        layers = []
+        prev = hidden_dim
+        for dim in mlp_dims:
+            layers.append(nn.Linear(prev, dim))
+            layers.append(nn.ELU())
+            prev = dim
+        layers.append(nn.Linear(prev, output_dim))
+        self.mlp = nn.Sequential(*layers)
+
+    def forward(self, x, h, c):
+        """x: (batch, input_dim) -> output: (batch, output_dim), (h, c) updated."""
+        x, (h, c) = self.lstm(x.unsqueeze(0), (h, c))
+        return self.mlp(x.squeeze(0)), h, c
+
+
+def load_policy_from_checkpoint(ckpt_path, device="cuda:0"):
+    """Build PolicyLSTM from RSL-RL checkpoint."""
+    ckpt = torch.load(ckpt_path, weights_only=False, map_location="cpu")
+    state = ckpt["actor_state_dict"]
+
+    input_dim = state["rnn.rnn.weight_ih_l0"].shape[1]
+    hidden_dim = state["rnn.rnn.weight_hh_l0"].shape[1]
+
+    # Infer MLP dims from checkpoint
+    mlp_dims = []
+    i = 0
+    while f"mlp.{i}.weight" in state:
+        mlp_dims.append(state[f"mlp.{i}.weight"].shape[0])
+        i += 2
+    output_dim = mlp_dims.pop()  # last entry is output_dim
+
+    model = PolicyLSTM(input_dim, hidden_dim, mlp_dims, output_dim)
+
+    # Load LSTM weights
+    lstm_state = {
+        "weight_ih_l0": state["rnn.rnn.weight_ih_l0"],
+        "weight_hh_l0": state["rnn.rnn.weight_hh_l0"],
+        "bias_ih_l0": state["rnn.rnn.bias_ih_l0"],
+        "bias_hh_l0": state["rnn.rnn.bias_hh_l0"],
+    }
+    model.lstm.load_state_dict(lstm_state)
+
+    # Load MLP weights
+    mlp_state = {}
+    for i in range(0, (len(mlp_dims) + 1) * 2, 2):
+        mlp_state[f"{i}.weight"] = state[f"mlp.{i}.weight"]
+        mlp_state[f"{i}.bias"] = state[f"mlp.{i}.bias"]
+    model.mlp.load_state_dict(mlp_state)
+
+    model.to(device).eval()
+    return model
+
+
+# ---------------------------------------------------------------------------
+# Odom network
+# ---------------------------------------------------------------------------
 
 class OdomNet(nn.Module):
-    """LSTM(512) + MLP → 3, matching deployment odom_mix_walk architecture."""
+    """LSTM(512) + MLP -> 3, matching deployment odom_mix_walk architecture."""
 
     def __init__(self, input_dim=29, hidden_dim=512, output_dim=3):
         super().__init__()
@@ -50,59 +132,36 @@ class OdomNet(nn.Module):
         )
 
     def forward(self, x, h_in, c_in):
-        """x: (1, batch, 29), h_in/c_in: (1, batch, 512) → output: (batch, 3)"""
+        """x: (1, batch, 29), h_in/c_in: (1, batch, 512) -> output: (batch, 3)"""
         x, (h, c) = self.lstm(x, (h_in, c_in))
-        x = x.squeeze(0)
-        return self.mlp(x), h, c
+        return self.mlp(x.squeeze(0)), h, c
 
 
-def collect_data(args):
-    """Run trained policy in IsaacLab, collect proprioception + GT base_vel."""
-    from isaaclab.app import AppLauncher
+# ---------------------------------------------------------------------------
+# Data collection
+# ---------------------------------------------------------------------------
 
-    app_launcher = AppLauncher(headless=True)
-    sim_app = app_launcher.app
-
-    import gymnasium as gym
-    import xgbrl.tasks  # noqa: F401 - registers XGB envs
-    from rsl_rl.runners import OnPolicyRunner
-
-    # Create environment
-    env = gym.make(args.task, num_envs=args.num_envs, device="cuda:0")
-    env = env.unwrapped
-
-    # Load trained policy
-    runner = OnPolicyRunner(args.checkpoint, env, continue_training=False, device="cuda:0")
-    policy = runner.alg.actor_critic
-    policy.eval()
-
+def collect_data(env, policy_model, num_steps, num_envs, device):
+    """Run trained policy, collect proprioception + GT base_vel."""
     robot = env.scene["robot"]
-
-    # Data storage
-    all_inputs = []   # (N, 29)
-    all_targets = []  # (N, 3)
+    all_inputs = []
+    all_targets = []
 
     obs, _ = env.reset()
-    # Get LSTM initial states
-    h = torch.zeros(1, args.num_envs, 512, device="cuda:0")
-    c = torch.zeros(1, args.num_envs, 512, device="cuda:0")
+    h = torch.zeros(1, num_envs, 512, device=device)
+    c = torch.zeros(1, num_envs, 512, device=device)
 
-    print(f"Collecting {args.num_steps} steps across {args.num_envs} envs...")
+    print(f"Collecting {num_steps} steps across {num_envs} envs...")
 
     with torch.no_grad():
-        for step in range(args.num_steps):
-            # Run policy
-            obs_tensor = torch.tensor(obs["policy"], device="cuda:0", dtype=torch.float32)
-            if obs_tensor.dim() == 2:
-                obs_tensor = obs_tensor.unsqueeze(0)  # (1, batch, 48)
-            action, h, c = policy(obs_tensor, h, c)
-            action = action.squeeze(0) if action.dim() == 3 else action
+        for step in range(num_steps):
+            obs_t = torch.tensor(obs["policy"], device=device, dtype=torch.float32)
+            action, h, c = policy_model(obs_t, h, c)
+            action = action.clamp(-1.0, 1.0)
 
-            # Step environment
             obs, _, terminated, truncated, _ = env.step(action)
 
             # Extract proprioception for odom training
-            # roll, pitch from quaternion
             qw = robot.data.root_quat_w[:, 0]
             qx = robot.data.root_quat_w[:, 1]
             qy = robot.data.root_quat_w[:, 2]
@@ -110,89 +169,72 @@ def collect_data(args):
             roll = torch.atan2(2 * (qw * qx + qy * qz), 1 - 2 * (qx * qx + qy * qy))
             pitch = torch.asin(torch.clamp(2 * (qw * qy - qz * qx), -1, 1))
 
-            # jpos_delta = joint_pos - default_joint_pos
             jpos_delta = robot.data.joint_pos - robot.data.default_joint_pos
-
-            # jvel × 0.05
             jvel_scaled = robot.data.joint_vel * 0.05
-
-            # gyro × 0.25 (body angular velocity)
             gyro_scaled = robot.data.root_ang_vel_b * 0.25
-
-            # GT target: body-frame linear velocity
             base_vel = robot.data.root_lin_vel_b
 
-            # Build 29-dim input: (roll, pitch, jpos_delta[12], jvel_scaled[12], gyro_scaled[3])
             odom_input = torch.cat([
-                roll.unsqueeze(1),       # (N, 1)
-                pitch.unsqueeze(1),      # (N, 1)
-                jpos_delta,              # (N, 12)
-                jvel_scaled,             # (N, 12)
-                gyro_scaled,             # (N, 3)
-            ], dim=1)  # (N, 29)
+                roll.unsqueeze(1), pitch.unsqueeze(1),
+                jpos_delta, jvel_scaled, gyro_scaled,
+            ], dim=1)
 
             all_inputs.append(odom_input.cpu())
             all_targets.append(base_vel.cpu())
 
             if (step + 1) % 500 == 0:
-                print(f"  Step {step+1}/{args.num_steps}")
+                print(f"  Step {step+1}/{num_steps}")
 
-            # Reset LSTM state for reset environments
             reset = terminated | truncated
             if reset.any():
                 h[:, reset, :] = 0
                 c[:, reset, :] = 0
 
-    env.close()
-    sim_app.close()
-
-    inputs = torch.cat(all_inputs, dim=0)   # (N*num_envs, 29)
-    targets = torch.cat(all_targets, dim=0)  # (N*num_envs, 3)
+    inputs = torch.cat(all_inputs, dim=0)
+    targets = torch.cat(all_targets, dim=0)
     print(f"Collected {inputs.shape[0]} samples")
     return inputs, targets
 
 
-def train_odom(inputs, targets, args):
+# ---------------------------------------------------------------------------
+# Training
+# ---------------------------------------------------------------------------
+
+def train_odom(inputs, targets, num_envs, seq_len, epochs, lr):
     """Train LSTM odom network with MSE loss on sequential data."""
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     n_samples = inputs.shape[0]
-    n_envs = args.num_envs
-    n_steps = n_samples // n_envs
+    n_steps = n_samples // num_envs
 
-    # Reshape to (n_steps, n_envs, 29) for sequential processing
-    inputs_seq = inputs[:n_steps * n_envs].reshape(n_steps, n_envs, 29).to(device)
-    targets_seq = targets[:n_steps * n_envs].reshape(n_steps, n_envs, 3).to(device)
+    inputs_seq = inputs[:n_steps * num_envs].reshape(n_steps, num_envs, 29).to(device)
+    targets_seq = targets[:n_steps * num_envs].reshape(n_steps, num_envs, 3).to(device)
 
     model = OdomNet(input_dim=29, hidden_dim=512, output_dim=3).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss()
 
-    seq_len = args.seq_len  # BPTT length
     n_batches = n_steps // seq_len
+    print(f"Training: {n_steps} steps x {num_envs} envs, seq_len={seq_len}, {n_batches} batches/epoch")
 
-    print(f"Training: {n_steps} steps × {n_envs} envs, seq_len={seq_len}, {n_batches} batches/epoch")
-
-    for epoch in range(args.epochs):
+    for epoch in range(epochs):
         total_loss = 0
-        h = torch.zeros(1, n_envs, 512, device=device)
-        c = torch.zeros(1, n_envs, 512, device=device)
+        h = torch.zeros(1, num_envs, 512, device=device)
+        c = torch.zeros(1, num_envs, 512, device=device)
 
         for i in range(n_batches):
             start = i * seq_len
-            end = start + seq_len
-            x = inputs_seq[start:end]  # (seq_len, n_envs, 29)
-            y = targets_seq[start:end]  # (seq_len, n_envs, 3)
+            x = inputs_seq[start:start + seq_len]
+            y = targets_seq[start:start + seq_len]
 
-            # Detach hidden state between batches (truncated BPTT)
             h = h.detach()
             c = c.detach()
 
             preds = []
             for t in range(seq_len):
-                out, h, c = model(x[t:t+1], h, c)  # (1, n_envs, 3)
+                out, h, c = model(x[t:t + 1], h, c)
                 preds.append(out)
 
-            preds = torch.stack(preds).squeeze(1)  # (seq_len, n_envs, 3)
+            preds = torch.stack(preds).squeeze(1)
             loss = criterion(preds, y)
 
             optimizer.zero_grad()
@@ -204,12 +246,8 @@ def train_odom(inputs, targets, args):
 
         avg_loss = total_loss / n_batches
         if (epoch + 1) % 10 == 0 or epoch == 0:
-            print(f"  Epoch {epoch+1}/{args.epochs}: loss={avg_loss:.6f}")
+            print(f"  Epoch {epoch+1}/{epochs}: loss={avg_loss:.6f}")
 
-    # Save checkpoint
-    pth_path = args.output.replace(".onnx", ".pth")
-    torch.save(model.state_dict(), pth_path)
-    print(f"Saved odom weights: {pth_path}")
     return model
 
 
@@ -236,34 +274,39 @@ def export_onnx(model, output_path):
     print(f"  output: (1,3)  hn: (1,1,512)  cn: (1,1,512)")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Train odom estimation network")
-    parser.add_argument("--checkpoint", help="Path to trained policy .pt checkpoint")
-    parser.add_argument("--task", default="Isaac-Velocity-Flat-XGB-Play-v0")
-    parser.add_argument("--num_envs", type=int, default=50)
-    parser.add_argument("--num_steps", type=int, default=5000)
-    parser.add_argument("--seq_len", type=int, default=64, help="BPTT sequence length")
-    parser.add_argument("--epochs", type=int, default=50)
-    parser.add_argument("--lr", type=float, default=1e-3)
-    parser.add_argument("--output", required=True, help="Output .onnx path")
-    parser.add_argument("--export_only", action="store_true", help="Skip training, just export")
-    parser.add_argument("--odom_pth", help="Path to saved odom .pth for export_only mode")
-    args = parser.parse_args()
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
-    if args.export_only:
-        model = OdomNet()
-        model.load_state_dict(torch.load(args.odom_pth, map_location="cpu"))
-        export_onnx(model, args.output)
-        return
+def main():
+    device = "cuda:0"
+
+    # Load env config directly from the registered entry point
+    from xgbrl.tasks.manager_based.xgbrl.flat_env_cfg import XgbFlatEnvCfg_PLAY
+
+    env_cfg = XgbFlatEnvCfg_PLAY()
+    env_cfg.scene.num_envs = args_cli.num_envs
+    env_cfg.sim.device = device
+
+    # Create environment
+    env = gym.make(args_cli.task, cfg=env_cfg)
+    env = env.unwrapped
+
+    # Load policy from checkpoint
+    policy_model = load_policy_from_checkpoint(args_cli.checkpoint, device)
 
     # Collect data
-    inputs, targets = collect_data(args)
+    inputs, targets = collect_data(env, policy_model, args_cli.num_steps, args_cli.num_envs, device)
 
-    # Train
-    model = train_odom(inputs, targets, args)
+    env.close()
 
-    # Export
-    export_onnx(model, args.output)
+    # Train odom network (before sim_app.close() which terminates the process)
+    model = train_odom(inputs, targets, args_cli.num_envs, args_cli.seq_len, args_cli.epochs, args_cli.lr)
+
+    # Export ONNX
+    export_onnx(model, args_cli.output)
+
+    sim_app.close()
 
 
 if __name__ == "__main__":
