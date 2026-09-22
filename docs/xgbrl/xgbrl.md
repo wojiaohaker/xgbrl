@@ -121,6 +121,6 @@ cd /home/qiyuan/Softwares/Mujoco330/mujoco_sim && \
 cd /home/qiyuan/Softwares/qiyuan_mc/build && cmake --build . --target mc_ctrl -j$(nproc)
 
 cd /home/qiyuan/Softwares/qiyuan_mc
-./scripts/run_mc.sh XG xgbrl 2>&1 | tee /home/qiyuan/Softwares/qiyuan_mc/data/qiyuan_mc_xgbrl/mc_ctrl_qiyuan_xgbrl.log 2>&1 
+./scripts/run_mc.sh XG "" xgbrl 2>&1 | tee /home/qiyuan/Softwares/qiyuan_mc/data/qiyuan_mc_xgbrl/mc_ctrl_qiyuan_xgbrl.log 2>&1 
 ```
 
