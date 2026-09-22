@@ -16,9 +16,8 @@ class XgbFlatEnvCfg(XgbRoughEnvCfg):
         # post init of parent
         super().__post_init__()
 
-        # override rewards
+        # override rewards for flat terrain
         self.rewards.flat_orientation_l2.weight = -2.5
-        # feet_air_time is disabled in rough_env_cfg (no contact sensor for feet)
 
         # change terrain to flat
         self.scene.terrain.terrain_type = "plane"

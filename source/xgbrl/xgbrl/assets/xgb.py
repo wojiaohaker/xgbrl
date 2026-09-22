@@ -10,24 +10,23 @@ MJCF model located at: ~/Softwares/Matrix/src/robot_mujoco/zsibot_robots/xgb/
 """
 
 import isaaclab.sim as sim_utils
-from isaaclab.actuators import DCMotorCfg
+from isaaclab.actuators import IdealPDActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg
 
 ##
 # Configuration - Actuators
 ##
 
-XGB_ACTUATOR_CFG = DCMotorCfg(
+XGB_ACTUATOR_CFG = IdealPDActuatorCfg(
     joint_names_expr=[".*_ABAD_JOINT", ".*_HIP_JOINT", ".*_KNEE_JOINT"],
     effort_limit=28.0,
-    saturation_effort=28.0,
-    velocity_limit=30.0,
-    stiffness=80.0,   # RL training: higher than Matrix deployment (20.0) to maintain pose
-    damping=2.0,      # RL training: higher than Matrix deployment (0.7) for stability
+    stiffness=20.0,   # Match qiyuan_mc deployment (KP=20)
+    damping=0.7,      # Match qiyuan_mc deployment (KD=0.7)
     friction=0.0,
 )
-"""Configuration for xgb leg actuators using DC motor model.
+"""Configuration for xgb leg actuators using ideal PD model.
 
+PD gains match qiyuan_mc deployment exactly: kp=20, kd=0.7.
 Torque limit: 28 Nm (from MJCF actuatorfrcrange).
 """
 

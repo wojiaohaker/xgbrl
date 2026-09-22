@@ -6,11 +6,21 @@
 from isaaclab.utils.configclass import configclass
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
 from isaaclab.managers import ObservationTermCfg as ObsTerm
+from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.utils.noise import UniformNoiseCfg as Unoise
 
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
 import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
+
+from xgbrl.tasks.manager_based.xgbrl.mdp.observations import (
+    base_lin_vel_2x,
+    base_ang_vel_025,
+    roll_pitch_zero,
+    velocity_commands_2x,
+    joint_vel_005,
+)
+from xgbrl.tasks.manager_based.xgbrl.mdp.rewards import joint_pos_target_l2 as xgb_joint_pos_target_l2
 
 ##
 # Pre-defined configs
@@ -24,28 +34,33 @@ class XgbRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # post init of parent
         super().__post_init__()
 
-        # Override observation order to match Matrix robot_mc format:
-        #   projected_gravity(3) → base_ang_vel(3) → base_lin_vel(3) →
-        #   velocity_commands(3) → joint_pos_rel(12) → joint_vel_rel(12) → last_action(12) = 48
+        # Override observation to match qiyuan_mc deployment obs format (48-dim):
+        #   [0:3]   2×base_vel       (GT during training, odom at deployment)
+        #   [3:6]   gyro×0.25        (body ang vel × 0.25)
+        #   [6:9]   (roll, pitch, 0) (Euler angles)
+        #   [9:12]  2×vel_cmd        (velocity command × 2)
+        #   [12:24] jpos_delta       (joint_pos - default_pos)
+        #   [24:36] qd×0.05          (joint vel × 0.05)
+        #   [36:48] last_action
         @configclass
         class MatrixPolicyCfg(ObsGroup):
-            projected_gravity = ObsTerm(
-                func=mdp.projected_gravity,
-                params={"asset_cfg": SceneEntityCfg("robot")},
-                noise=Unoise(n_min=-0.05, n_max=0.05),
-            )
-            base_ang_vel = ObsTerm(
-                func=mdp.base_ang_vel,
-                params={"asset_cfg": SceneEntityCfg("robot")},
-                noise=Unoise(n_min=-0.2, n_max=0.2),
-            )
             base_lin_vel = ObsTerm(
-                func=mdp.base_lin_vel,
+                func=base_lin_vel_2x,
                 params={"asset_cfg": SceneEntityCfg("robot")},
                 noise=Unoise(n_min=-0.1, n_max=0.1),
             )
+            base_ang_vel = ObsTerm(
+                func=base_ang_vel_025,
+                params={"asset_cfg": SceneEntityCfg("robot")},
+                noise=Unoise(n_min=-0.05, n_max=0.05),
+            )
+            roll_pitch = ObsTerm(
+                func=roll_pitch_zero,
+                params={"asset_cfg": SceneEntityCfg("robot")},
+                noise=Unoise(n_min=-0.05, n_max=0.05),
+            )
             velocity_commands = ObsTerm(
-                func=mdp.generated_commands,
+                func=velocity_commands_2x,
                 params={"command_name": "base_velocity"},
             )
             joint_pos = ObsTerm(
@@ -54,12 +69,12 @@ class XgbRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
                 noise=Unoise(n_min=-0.01, n_max=0.01),
             )
             joint_vel = ObsTerm(
-                func=mdp.joint_vel_rel,
+                func=joint_vel_005,
                 params={"asset_cfg": SceneEntityCfg("robot")},
-                noise=Unoise(n_min=-1.5, n_max=1.5),
+                noise=Unoise(n_min=-0.075, n_max=0.075),
             )
             actions = ObsTerm(func=mdp.last_action)
-            height_scan = None  # disabled, set to None by flat_env_cfg
+            height_scan = None  # disabled; set to None by flat_env_cfg too
 
             def __post_init__(self):
                 self.enable_corruption = True
@@ -79,19 +94,50 @@ class XgbRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_range = (0.01, 0.06)
         self.scene.terrain.terrain_generator.sub_terrains["random_rough"].noise_step = 0.01
 
-        # reduce action scale
+        # reduce action scale (matches qiyuan_mc deployment: qdes = q_default + 0.25 * action)
         self.actions.joint_pos.scale = 0.25
 
-        # velocity command ranges (官方默认 ±1.0，匹配 XGB 物理能力)
+        # velocity command ranges
         self.commands.base_velocity.ranges.lin_vel_x = (-1.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-1.0, 1.0)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
 
-        # rewards — 使用官方默认权重，不做额外修改
-        # xgb foot is part of KNEE_LINK (no separate FOOT_LINK body)
-        self.rewards.feet_air_time = None
-        self.rewards.undesired_contacts = None
-        self.rewards.flat_orientation_l2.weight = 0.0  # 官方默认禁用
+        # rewards — re-enabled with XGB body names
+        # feet_air_time: xgb foot is part of KNEE_LINK (no separate FOOT body)
+        self.rewards.feet_air_time = RewTerm(
+            func=mdp.feet_air_time,
+            weight=0.125,
+            params={
+                "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*KNEE_LINK"),
+                "command_name": "base_velocity",
+                "threshold": 0.5,
+            },
+        )
+        # penalize base_link contact (prevents falling on face/back)
+        self.rewards.undesired_contacts = RewTerm(
+            func=mdp.undesired_contacts,
+            weight=-1.0,
+            params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base_link"), "threshold": 1.0},
+        )
+        # encourage upright orientation
+        self.rewards.flat_orientation_l2.weight = -1.0
+
+        # stand pose regularization (penalize deviation from default joint positions)
+        self.rewards.joint_pos_target_abad = RewTerm(
+            func=xgb_joint_pos_target_l2,
+            weight=-0.1,
+            params={"target": 0.0, "asset_cfg": SceneEntityCfg("robot", joint_names=".*_ABAD_JOINT")},
+        )
+        self.rewards.joint_pos_target_hip = RewTerm(
+            func=xgb_joint_pos_target_l2,
+            weight=-0.1,
+            params={"target": 0.8, "asset_cfg": SceneEntityCfg("robot", joint_names=".*_HIP_JOINT")},
+        )
+        self.rewards.joint_pos_target_knee = RewTerm(
+            func=xgb_joint_pos_target_l2,
+            weight=-0.1,
+            params={"target": -1.5, "asset_cfg": SceneEntityCfg("robot", joint_names=".*_KNEE_JOINT")},
+        )
 
         # terminations
         self.terminations.base_contact.params["sensor_cfg"].body_names = "base_link"
