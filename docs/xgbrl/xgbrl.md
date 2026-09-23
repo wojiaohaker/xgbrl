@@ -90,8 +90,6 @@ sudo python3 /home/qiyuan/UnrealEngine/CarlaUE5/Unreal/CarlaUnreal/Plugins/MuJoC
 cd /home/qiyuan/Softwares/Mujoco330/mujoco_sim && \
 ./build/mujoco_sim config.yaml > /home/qiyuan/Softwares/qiyuan_mc/data/robot_mc/mujoco_sim_matrix.log 2>&1
 
-
-
 cd /home/qiyuan/Softwares/Matrix/src/robot_mc/build/export/mc/bin && \
 HOOK_OBS_LOG=/home/qiyuan/Softwares/qiyuan_mc/data/robot_mc/matrix_obs_log.txt \
 HOOK_DUMP_DIR=/home/qiyuan/Softwares/qiyuan_mc/data/robot_mc/matrix_models_decrypted \

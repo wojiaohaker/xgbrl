@@ -29,12 +29,12 @@ import torch.nn as nn
 
 # CLI
 parser = argparse.ArgumentParser(description="Train odom estimation network for qiyuan_mc")
-parser.add_argument("--task", default="Isaac-Velocity-Flat-XGB-Play-v0")
+parser.add_argument("--task", default="Isaac-Velocity-Flat-XGB-v0")
 parser.add_argument("--checkpoint", required=True, help="Path to trained policy .pt checkpoint")
 parser.add_argument("--num_envs", type=int, default=50)
-parser.add_argument("--num_steps", type=int, default=5000)
-parser.add_argument("--seq_len", type=int, default=64, help="BPTT sequence length")
-parser.add_argument("--epochs", type=int, default=50)
+parser.add_argument("--num_steps", type=int, default=50000)
+parser.add_argument("--seq_len", type=int, default=128, help="BPTT sequence length")
+parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument(
     "--input_rank",
@@ -213,6 +213,17 @@ def collect_data(env, policy_model, num_steps, num_envs, device):
     inputs = torch.cat(all_inputs, dim=0)
     targets = torch.cat(all_targets, dim=0)
     print(f"Collected {inputs.shape[0]} samples")
+
+    # Add standing-still samples (zero input, zero target)
+    # Training env data is all walking; without standing data the odom model
+    # learns a non-zero velocity bias and diverges when robot is still.
+    n_stand = min(inputs.shape[0] // 10, 5000)
+    stand_in = torch.zeros(n_stand, 29)
+    stand_tgt = torch.zeros(n_stand, 3)
+    inputs = torch.cat([inputs, stand_in], dim=0)
+    targets = torch.cat([targets, stand_tgt], dim=0)
+    print(f"Added {n_stand} standing-still samples, total {inputs.shape[0]}")
+
     return inputs, targets
 
 
@@ -315,12 +326,18 @@ def export_onnx(model, output_path, input_rank=2):
 def main():
     device = "cuda:0"
 
-    # Load env config directly from the registered entry point
-    from xgbrl.tasks.manager_based.xgbrl.flat_env_cfg import XgbFlatEnvCfg_PLAY
+    # Use the TRAINING config (not Play) for diverse velocity commands (-1 to 1).
+    # Play config locks vx=0.5, which gives odom model no standing-still data
+    # and causes wrong velocity estimates at deployment when robot is still.
+    from xgbrl.tasks.manager_based.xgbrl.flat_env_cfg import XgbFlatEnvCfg
 
-    env_cfg = XgbFlatEnvCfg_PLAY()
+    env_cfg = XgbFlatEnvCfg()
     env_cfg.scene.num_envs = args_cli.num_envs
     env_cfg.sim.device = device
+    # Disable noise and pushing for clean data collection
+    env_cfg.observations.policy.enable_corruption = False
+    env_cfg.events.base_external_force_torque = None
+    env_cfg.events.push_robot = None
 
     # Create environment
     env = gym.make(args_cli.task, cfg=env_cfg)
@@ -336,6 +353,18 @@ def main():
 
     # Train odom network (before sim_app.close() which terminates the process)
     model = train_odom(inputs, targets, args_cli.num_envs, args_cli.seq_len, args_cli.epochs, args_cli.lr)
+
+    # Sanity check: zero-input should produce near-zero velocity
+    model.cpu().eval()
+    with torch.no_grad():
+        h = torch.zeros(1, 1, 512)
+        c = torch.zeros(1, 1, 512)
+        zero_in = torch.zeros(1, 1, 29)
+        out, _, _ = model(zero_in, h, c)
+        print(f"Sanity check: zero-input odom output = {out.squeeze().tolist()}")
+        print(f"  (should be near [0, 0, 0] for a standing robot)")
+        if out.abs().max() > 0.5:
+            print("  WARNING: odom output too large for zero input! Model may not converge.")
 
     # Export ONNX
     export_onnx(model, args_cli.output, input_rank=args_cli.input_rank)
