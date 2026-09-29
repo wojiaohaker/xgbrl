@@ -122,3 +122,19 @@ cd /home/qiyuan/Softwares/qiyuan_mc
 ./scripts/run_mc.sh XG "" xgbrl 2>&1 | tee /home/qiyuan/Softwares/qiyuan_mc/data/qiyuan_mc_xgbrl/mc_ctrl_qiyuan_xgbrl.log 2>&1 
 ```
 
+
+
+七、mjlab测试
+
+1、mujoco_sim_qiyuan 自己写的运控qiyuan_mc + 自己训练的xgbrl模型 + mjlab
+
+```
+cd /home/qiyuan/Softwares/Mujoco330/mujoco_sim && \
+./build/mujoco_sim config.yaml > /home/qiyuan/Softwares/qiyuan_mc/data/qiyuan_mc_xgbrl_mjlab/mujoco_sim_qiyuan_xgbrl_mjlab.log 2>&1
+
+cd /home/qiyuan/Softwares/qiyuan_mc/build && cmake --build . --target mc_ctrl -j$(nproc)
+
+cd /home/qiyuan/Softwares/qiyuan_mc
+./scripts/run_mc.sh XG "" xgbrl 2>&1 | tee /home/qiyuan/Softwares/qiyuan_mc/data/qiyuan_mc_xgbrl_mjlab/mc_ctrl_qiyuan_xgbrl_mjlab.log 2>&1 
+```
+
