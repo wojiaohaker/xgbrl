@@ -138,3 +138,22 @@ cd /home/qiyuan/Softwares/qiyuan_mc
 ./scripts/run_mc.sh XG "" xgbrl 2>&1 | tee /home/qiyuan/Softwares/qiyuan_mc/data/qiyuan_mc_xgbrl_mjlab/mc_ctrl_qiyuan_xgbrl_mjlab.log 2>&1 
 ```
 
+
+
+八、mujoco+ue+qiyuamc测试
+
+```
+cd /home/qiyuan/UnrealEngine/CarlaUE5
+
+/home/qiyuan/UnrealEngine/UnrealEngine5_carla/Engine/Binaries/Linux/UnrealEditor /home/qiyuan/UnrealEngine/CarlaUE5/Unreal/CarlaUnreal/CarlaUnreal.uproject
+```
+
+```
+cd /home/qiyuan/Softwares/Mujoco330/mujoco_sim && \
+./build/mujoco_sim config.yaml > /home/qiyuan/Softwares/qiyuan_mc/data/qiyuan_mc/mujoco_sim_qiyuan.log 2>&1
+
+cd /home/qiyuan/Softwares/qiyuan_mc/build && cmake --build . --target mc_ctrl -j$(nproc)
+
+cd /home/qiyuan/Softwares/qiyuan_mc
+./scripts/run_mc.sh XG 2>&1 | tee /home/qiyuan/Softwares/qiyuan_mc/data/qiyuan_mc/mc_ctrl_qiyuan.log 2>&1 
+```
